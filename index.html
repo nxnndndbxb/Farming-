@@ -1,0 +1,1670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Egg Tycoon - Digital Farm</title>
+    
+    <!-- Website Favicon (Logo showing on domain tab) -->
+    <link rel="icon" href="https://iili.io/qXDUeyJ.png" type="image/png">
+    
+    <!-- Three.js Libraries for 3D Hen -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <style>
+        /* --- General Reset & Setup --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #111;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        /* Mobile Screen Container */
+        .app {
+            width: 100%;
+            max-width: 400px;
+            height: 100vh;
+            max-height: 850px;
+            background-color: #fff;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+        }
+
+        /* --- Screens System --- */
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, #a2d5fa, #8ae02d);
+            z-index: 50;
+            display: none;
+            flex-direction: column;
+        }
+        .screen.active {
+            display: flex;
+        }
+
+        /* --- Custom Header for Inner Pages --- */
+        .page-header {
+            background-color: #fff;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 15px;
+            font-size: 18px;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+        .back-btn { font-size: 24px; cursor: pointer; color: #333; }
+        .history-btn-top { font-size: 14px; color: #1b35a3; cursor: pointer; font-weight: bold; }
+
+        /* --- Main App Header --- */
+        .header {
+            background: linear-gradient(to right, #6dd5ed, #2193b0);
+            height: 55px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 22px;
+            font-weight: 900;
+            color: #fff;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            z-index: 20;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        /* --- STABLE TOP AREA (Sky, Farm Scene & Buttons) --- */
+        .top-sky-area {
+            position: relative;
+            height: 280px;
+            min-height: 280px;
+            background: linear-gradient(to bottom, #4ea1f3 0%, #a2d5fa 60%, #8ae02d 100%);
+            z-index: 10;
+            overflow: hidden;
+        }
+
+        /* Scenic Background - Beautiful Warehouse, Female Hen & Eggs */
+        .scenic-bg {
+            position: absolute;
+            bottom: -5px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            z-index: 5;
+            padding-left: 10px;
+        }
+        .scenic-warehouse { font-size: 110px; filter: drop-shadow(0px 8px 4px rgba(0,0,0,0.3)); margin-right: -15px; z-index: 1; }
+        .scenic-hen { font-size: 110px; filter: drop-shadow(0px 8px 4px rgba(0,0,0,0.3)); z-index: 2; margin-right: 5px;}
+        .scenic-egg-wrapper { z-index: 3; margin-left: 6px; display: flex; align-items: flex-end; padding-bottom: 10px; }
+
+        /* Beautiful 3D Blue Egg CSS */
+        .blue-egg-3d {
+            display: inline-block;
+            width: 1em;
+            height: 1.4em;
+            background: radial-gradient(circle at 30% 30%, #d4f0ff 0%, #3498db 50%, #0a2463 100%);
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            box-shadow: inset -2px -2px 6px rgba(0,0,0,0.4), 0 4px 5px rgba(0,0,0,0.4);
+        }
+
+        /* Top Currencies Bar */
+        .top-bar {
+            position: absolute;
+            top: 15px;
+            width: 100%;
+            display: flex;
+            justify-content: space-evenly;
+            padding: 0 5px;
+            z-index: 15;
+        }
+        .pill { background: #fff; border-radius: 20px; height: 32px; display: flex; align-items: center; position: relative; font-weight: 800; font-size: 13px; box-shadow: 0 3px 6px rgba(0,0,0,0.2); min-width: 95px; padding-left: 25px; justify-content: center; cursor: pointer; border: 1px solid #eee; }
+        .pill.profit { background: #e3f2fd; color: #1e3c72; width: 105px; padding-left: 15px;}
+        .pill.base { color: #2e7d32; width: 100px; padding-left: 10px; }
+        .pill.diamond { color: #1565c0; width: 100px; padding-left: 10px; }
+        .pill .icon-left { position: absolute; left: -8px; width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 18px; border: 2px solid #fff; box-shadow: 0 3px 5px rgba(0,0,0,0.2); }
+        .pill.profit .icon-left { background: #fff; left: -12px;}
+        .pill.base .icon-left { background: linear-gradient(135deg, #60c39f, #2e7d32); color: white; font-size: 20px; }
+        .pill.diamond .icon-left { background: #fff; font-size: 22px; }
+        .pill .add-btn { position: absolute; right: -2px; width: 26px; height: 26px; background: #fff; border-radius: 50%; display: flex; justify-content: center; align-items: center; border: 2px solid #ccc; color: #555; font-size: 18px; font-weight: bold; }
+        .tag { position: absolute; bottom: -12px; background: #222; color: #fff; font-size: 9px; padding: 3px 8px; border-radius: 10px; letter-spacing: 0.5px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+
+        /* Floating Buttons */
+        .btn { position: absolute; display: flex; flex-direction: column; align-items: center; color: #fff; font-weight: 800; font-size: 12px; text-shadow: 1px 1px 3px rgba(0,0,0,0.9); z-index: 10; text-align: center; line-height: 1.2; cursor: pointer; transition: transform 0.1s; }
+        .btn:active { transform: scale(0.95); }
+        .btn .circle { width: 55px; height: 55px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 28px; border: 3px solid #fff; box-shadow: 0 4px 8px rgba(0,0,0,0.4); margin-bottom: 4px; }
+        .btn-withdraw { top: 75px; left: 15px; }
+        .btn-withdraw .circle { background: linear-gradient(135deg, #a25df5, #622ad3); }
+        .btn-oasis { top: 170px; left: 15px; }
+        .btn-oasis .circle { background: linear-gradient(135deg, #4ac6ed, #1f94c9); font-size: 26px;}
+        .btn-invite { top: 75px; right: 15px; } 
+        .btn-invite .circle { background: linear-gradient(135deg, #446bf2, #1b35a3); }
+        .btn-job { top: 170px; right: 15px; }
+        .btn-job .circle { background: linear-gradient(135deg, #44dfb6, #14a47a); }
+
+        /* --- SCROLLABLE FLOORS AREA --- */
+        .floor-scroll-container { flex-grow: 1; overflow-y: auto; background-color: #27ae60; border-top: 4px solid #1e8449; position: relative;}
+        .floor-scroll-container::-webkit-scrollbar { width: 6px; }
+        .floor-scroll-container::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.3); border-radius: 10px; }
+
+        .floor-box { 
+            position: relative; 
+            height: 180px; 
+            background: linear-gradient(to bottom, #4ea1f3 0%, #a2d5fa 100%); 
+            border-bottom: 6px solid #229954; 
+            box-shadow: inset 0 10px 10px -10px rgba(0,0,0,0.4); 
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden; 
+        }
+        .floor-divider { background: linear-gradient(to right, #1f94c9, #1b35a3); color: #fff; font-size: 13px; font-weight: 900; padding: 6px 15px; border-bottom: 2px solid #111; display: flex; justify-content: space-between; z-index: 5; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+
+        /* Weather Cloud Animations for the floor background */
+        @keyframes floatClouds {
+            0% { transform: translateX(-30px); }
+            50% { transform: translateX(30px); }
+            100% { transform: translateX(-30px); }
+        }
+        .cloud-element {
+            position: absolute;
+            font-size: 24px;
+            color: #fff;
+            opacity: 0.85;
+            filter: drop-shadow(0px 2px 3px rgba(0,0,0,0.1));
+            animation: floatClouds 20s ease-in-out infinite;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .c-1 { top: 35px; left: 10%; animation-duration: 22s; }
+        .c-2 { top: 50px; left: 55%; font-size: 32px; animation-duration: 28s; animation-direction: reverse; }
+        .c-3 { top: 40px; left: 80%; animation-duration: 18s; font-size: 20px; }
+
+        /* 3D Canvas Styles */
+        .floor-3d-canvas { position: absolute; bottom: 0; left: 0; width: 100%; height: 145px; z-index: 1; pointer-events: none; }
+        
+        /* Discrete Eggs System Styles - Hovering perfectly on the floor */
+        .eggs-container { position: absolute; bottom: 15px; right: 20px; display: flex; flex-direction: row-reverse; flex-wrap: wrap-reverse; gap: 8px; z-index: 10; pointer-events: auto; max-width: 65%; justify-content: flex-start; }
+        
+        /* The beautiful interactable single egg on floors */
+        .single-floor-egg { 
+            width: 18px; 
+            height: 25px; 
+            background: radial-gradient(circle at 30% 30%, #d4f0ff, #3498db, #0a2463);
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            box-shadow: inset -2px -2px 6px rgba(0,0,0,0.4);
+            cursor: pointer; 
+            transition: transform 0.1s, filter 0.2s; 
+            position: relative;
+        }
+        .single-floor-egg::after {
+            content: ''; 
+            position: absolute;
+            bottom: -3px; left: 10%; width: 80%; height: 5px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 50%;
+            z-index: -1;
+            filter: blur(1.5px);
+        }
+        .single-floor-egg:active { transform: scale(0.85); filter: brightness(1.2); }
+
+        /* Locked Overlay */
+        .locked-overlay { position: absolute; top: 25px; left: 0; width: 100%; height: calc(100% - 25px); background: rgba(0,0,0,0.6); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; pointer-events: auto; }
+        .adopt-btn { background: linear-gradient(135deg, #4ac6ed, #1b35a3); color: #fff; font-weight: 900; font-size: 15px; padding: 10px 25px; border-radius: 25px; border: 3px solid #fff; cursor: pointer; margin-top: 10px; box-shadow: 0 5px 10px rgba(0,0,0,0.5); transition: transform 0.1s; }
+        .adopt-btn:active { transform: scale(0.95); }
+
+        /* --- Bottom Navigation --- */
+        .bottom-nav { background: linear-gradient(to bottom, #7ab929, #5a961b); height: 85px; display: flex; justify-content: space-around; align-items: center; border-top: 3px solid #222; position: relative; z-index: 20; }
+        .bottom-nav::before { content: ''; position: absolute; top: 50%; transform: translateY(-50%); width: 100%; height: 8px; background: #e0a500; border-top: 2px solid #222; border-bottom: 2px solid #222; z-index: 0; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: white; font-weight: 800; font-size: 12px; z-index: 1; position: relative; cursor: pointer; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); }
+        .nav-icon { width: 50px; height: 50px; background: linear-gradient(135deg, #4477ec, #1938a1); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 24px; border: 2.5px solid #fff; margin-bottom: 4px; box-shadow: 0 4px 6px rgba(0,0,0,0.4);}
+        .nav-item.theft .nav-icon { background: linear-gradient(135deg, #ff8a00, #d93d00); }
+
+        /* --- Forms & Inner Pages UI --- */
+        .form-container { padding: 20px; overflow-y: auto; flex-grow: 1; background: linear-gradient(to bottom, #a2d5fa, #8ae02d) !important; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 14px; font-weight: bold; color: #555; margin-bottom: 5px; text-shadow: 1px 1px 2px rgba(255,255,255,0.8);}
+        .input-field { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; outline: none; transition: border 0.3s; background:#fff;}
+        .input-field:focus { border-color: #4477ec; }
+        .input-field[readonly] { background-color: #eef2f5; color: #1b35a3; font-weight: bold;}
+        
+        /* Scrollable Auth Layout */
+        .auth-wrapper { flex-grow: 1; overflow-y: auto; padding: 30px 15px 100px 15px; display: flex; flex-direction: column; align-items: center; width: 100%; z-index: 20;}
+        .auth-container { width: 100%; max-width: 360px; background: rgba(255,255,255,0.95); padding: 25px; border-radius: 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.2); position: relative;}
+        .auth-logo { text-align: center; filter: drop-shadow(0 4px 2px rgba(0,0,0,0.3)); margin-bottom: 10px; }
+        .auth-title { text-align: center; color: #1b35a3; font-weight: 900; font-size: 24px; margin-bottom: 20px; }
+        
+        .phone-input-group { display: flex; gap: 10px; }
+        .phone-input-group select { width: 40%; font-size: 14px;}
+        .captcha-box { display: flex; gap: 10px; align-items: center; }
+        .captcha-text { background: #eef2f5; padding: 12px; border-radius: 8px; font-weight: bold; color: #d84315; font-size: 18px; letter-spacing: 2px; text-align: center; border: 1px dashed #ccc; min-width: 100px;}
+        
+        .auth-link { text-align: center; margin-top: 15px; font-size: 14px; color: #555; font-weight: bold;}
+        .auth-link span { color: #1b35a3; cursor: pointer; text-decoration: underline; }
+        .forgot-link { display: block; text-align: right; color: #d84315; font-size: 13px; font-weight: bold; cursor: pointer; margin-top: -10px; margin-bottom: 10px; text-decoration: underline;}
+        
+        .copyright-footer { position: absolute; bottom: 8px; width: 100%; text-align: center; color: #111; font-size: 11px; z-index: 30; font-weight: 900; text-shadow: 1px 1px 2px rgba(255,255,255,0.8); }
+
+        .address-box { display: flex; align-items: center; background: #eef2f5; padding: 10px; border-radius: 8px; border: 1px solid #ccc; margin-top: 5px;}
+        .address-text { flex-grow: 1; font-family: monospace; font-size: 12px; word-break: break-all; color: #333;}
+        .copy-btn { background: #4477ec; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: bold; margin-left: 10px;}
+        .submit-btn { width: 100%; padding: 15px; background: linear-gradient(135deg, #44dfb6, #14a47a); color: white; font-size: 18px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; margin-top: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
+        .submit-btn:active { transform: scale(0.98); }
+        .info-box { background: rgba(255,255,255,0.9); border-left: 4px solid #4477ec; padding: 15px; border-radius: 5px; font-size: 14px; color: #333; margin-bottom: 20px; line-height: 1.5; font-weight: bold;}
+
+        /* Lists */
+        .data-list { list-style: none; padding: 0; }
+        .data-item { background: #fff; margin-bottom: 10px; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; border: 1px solid #eee;}
+        .rank-number { font-size: 20px; font-weight: 900; color: #888; width: 30px; }
+        .rank-crown { font-size: 24px; width: 30px; }
+        .hi-info { display: flex; flex-direction: column; gap: 5px; flex-grow: 1; }
+        .hi-title { font-weight: bold; font-size: 15px; color: #333; }
+        .hi-date { font-size: 12px; color: #888; }
+        .hi-status { font-weight: bold; font-size: 13px; padding: 4px 10px; border-radius: 12px; }
+        .status-Pending { background: #fff3cd; color: #856404; }
+        .status-Review { background: #cce5ff; color: #004085; }
+        .status-Approved { background: #d4edda; color: #155724; }
+        
+        /* Settings Toggle */
+        .toggle-switch { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #2196F3; }
+        input:checked + .slider:before { transform: translateX(22px); }
+
+        /* Oasis Grid */
+        .oasis-header { text-align: center; margin-bottom: 20px; font-weight: bold; color: #1b35a3; }
+        .oasis-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; margin-top: 20px; }
+        .oasis-egg { display:flex; justify-content:center; align-items:center; cursor: pointer; transition: transform 0.1s;}
+        .oasis-egg:active { transform: scale(0.8); }
+        .oasis-broken { font-size: 35px; text-align: center; opacity: 0.5; filter: grayscale(1); cursor: not-allowed; }
+
+        .loading-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.8); z-index:100; display:none; justify-content:center; align-items:center; font-weight:bold; font-size: 18px; color:#4477ec;}
+    </style>
+</head>
+<body>
+
+<div class="app">
+    <!-- Overlay Loader -->
+    <div id="loader" class="loading-overlay">Loading...</div>
+
+    <!-- ========================================== -->
+    <!-- AUTHENTICATION SCREENS                     -->
+    <!-- ========================================== -->
+
+    <!-- Register Screen (Default Active) -->
+    <div id="screen-register" class="screen active">
+        <div class="auth-wrapper">
+            <div class="auth-container">
+                <div class="auth-logo">
+                    <img src="https://iili.io/qXDUeyJ.png" alt="Logo" style="width: 80px; height: 80px; object-fit: contain;">
+                </div>
+                <div class="auth-title">Create Account</div>
+                
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="reg-name" class="input-field" placeholder="Enter your name">
+                </div>
+
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <div class="phone-input-group">
+                        <select id="reg-code" class="input-field country-select"></select>
+                        <input type="tel" id="reg-phone" class="input-field" placeholder="10-digits" maxlength="10">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Invitation Code</label>
+                    <input type="text" id="reg-invite" class="input-field" placeholder="Optional" readonly style="background-color: #eef2f5;">
+                </div>
+                
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="reg-password" class="input-field" placeholder="Create a password">
+                </div>
+
+                <div class="form-group">
+                    <label>Security Verification</label>
+                    <div class="captcha-box">
+                        <div class="captcha-text" id="reg-captcha-text">4 + 2 = ?</div>
+                        <input type="number" id="reg-captcha-input" class="input-field" placeholder="Answer">
+                    </div>
+                </div>
+
+                <button class="submit-btn" onclick="processRegister()">Register Account</button>
+                
+                <div class="auth-link">
+                    Already have an account? <span onclick="navToAuth('screen-login')">Login</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Beautiful Scenic Background -->
+        <div class="scenic-bg">
+            <div class="scenic-warehouse">🛖</div>
+            <div class="scenic-hen">🐓</div>
+            <div class="scenic-egg-wrapper"><div class="blue-egg-3d" style="font-size: 20px;"></div></div>
+            <div class="scenic-egg-wrapper"><div class="blue-egg-3d" style="font-size: 15px;"></div></div>
+        </div>
+        <div class="copyright-footer">Copyright &copy; 2024 Egg Tycoon. All rights reserved.</div>
+    </div>
+
+    <!-- Login Screen -->
+    <div id="screen-login" class="screen">
+        <div class="auth-wrapper">
+            <div class="auth-container">
+                <div class="auth-logo">
+                    <img src="https://iili.io/qXDUeyJ.png" alt="Logo" style="width: 80px; height: 80px; object-fit: contain;">
+                </div>
+                <div class="auth-title">Egg Tycoon Login</div>
+                
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <div class="phone-input-group">
+                        <select id="log-code" class="input-field country-select"></select>
+                        <input type="tel" id="log-phone" class="input-field" placeholder="10-digit phone number" maxlength="10">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="log-password" class="input-field" placeholder="Enter your password">
+                </div>
+
+                <span class="forgot-link" onclick="navToAuth('screen-forgot')">Forgot Password?</span>
+
+                <div class="form-group">
+                    <label>Security Verification</label>
+                    <div class="captcha-box">
+                        <div class="captcha-text" id="log-captcha-text">5 + 3 = ?</div>
+                        <input type="number" id="log-captcha-input" class="input-field" placeholder="Answer">
+                    </div>
+                </div>
+
+                <button class="submit-btn" style="background: linear-gradient(135deg, #446bf2, #1b35a3);" onclick="processLogin()">Login</button>
+                
+                <div class="auth-link">
+                    New Farmer? <span onclick="navToAuth('screen-register')">Register Here</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="scenic-bg">
+            <div class="scenic-warehouse">🛖</div>
+            <div class="scenic-hen">🐓</div>
+            <div class="scenic-egg-wrapper"><div class="blue-egg-3d" style="font-size: 20px;"></div></div>
+            <div class="scenic-egg-wrapper"><div class="blue-egg-3d" style="font-size: 15px;"></div></div>
+        </div>
+        <div class="copyright-footer">Copyright &copy; 2024 Egg Tycoon. All rights reserved.</div>
+    </div>
+
+    <!-- Forgot Password Screen -->
+    <div id="screen-forgot" class="screen">
+        <div class="auth-wrapper">
+            <div class="auth-container">
+                <div class="auth-logo">
+                    <img src="https://iili.io/qXDUeyJ.png" alt="Logo" style="width: 80px; height: 80px; object-fit: contain;">
+                </div>
+                <div class="auth-title">Reset Password</div>
+                
+                <div class="info-box" style="font-size: 12px; padding: 10px; margin-bottom: 15px; border-left: 3px solid #d84315;">Enter your phone number to receive a secure code on WhatsApp.</div>
+
+                <div class="form-group">
+                    <label>Registered Phone</label>
+                    <div class="phone-input-group">
+                        <select id="fg-code" class="input-field country-select"></select>
+                        <input type="tel" id="fg-phone" class="input-field" placeholder="10-digits" maxlength="10">
+                    </div>
+                </div>
+
+                <div id="fg-step2" style="display:none;">
+                    <div class="form-group">
+                        <label>WhatsApp Security Code</label>
+                        <input type="number" id="fg-otp" class="input-field" placeholder="Enter 6-digit code">
+                    </div>
+                    <div class="form-group">
+                        <label>New Password</label>
+                        <input type="password" id="fg-new-pwd" class="input-field" placeholder="Create new password">
+                    </div>
+                </div>
+
+                <button class="submit-btn" id="fg-btn-send" style="background: linear-gradient(135deg, #25D366, #128C7E);" onclick="sendWhatsappCode()">Send Code via WhatsApp</button>
+                <button class="submit-btn" id="fg-btn-reset" style="display:none; background: linear-gradient(135deg, #446bf2, #1b35a3);" onclick="processResetPassword()">Reset Password</button>
+                
+                <div class="auth-link">
+                    Remembered it? <span onclick="navToAuth('screen-login')">Back to Login</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="scenic-bg">
+            <div class="scenic-warehouse">🛖</div>
+            <div class="scenic-hen">🐓</div>
+            <div class="scenic-egg-wrapper"><div class="blue-egg-3d" style="font-size: 20px;"></div></div>
+            <div class="scenic-egg-wrapper"><div class="blue-egg-3d" style="font-size: 15px;"></div></div>
+        </div>
+        <div class="copyright-footer">Copyright &copy; 2024 Egg Tycoon. All rights reserved.</div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 1. HOME SCREEN (GAME)                      -->
+    <!-- ========================================== -->
+    <div id="screen-home" class="screen" style="background: none;">
+        <div class="header">
+            <img src="https://iili.io/qXDUeyJ.png" alt="Logo" style="width: 28px; height: 28px; margin-right: 8px; filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.3)); object-fit: contain;"> 
+            Egg Tycoon
+        </div>
+
+        <!-- Stable Top Sky Area with Beautiful Hen Background -->
+        <div class="top-sky-area">
+            <!-- 3D HEN CONTAINER FOR HEADER -->
+            <div id="hen-3d-header-container" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 4;"></div>
+
+            <div class="scenic-bg">
+                <div class="scenic-warehouse">🛖</div>
+                <div class="scenic-egg-wrapper"><div class="blue-egg-3d" style="font-size: 22px;"></div></div>
+                <div class="scenic-egg-wrapper"><div class="blue-egg-3d" style="font-size: 16px;"></div></div>
+            </div>
+
+            <div class="top-bar">
+                <div class="pill profit" onclick="navTo('screen-withdraw')">
+                    <div class="icon-left"><div class="blue-egg-3d" style="font-size: 16px;"></div></div>
+                    <span id="ui-eggs">0</span>
+                    <div class="tag" style="left: 20px;">PROFIT</div>
+                </div>
+                <div class="pill base" onclick="navTo('screen-deposit')">
+                    <div class="icon-left">₮</div>
+                    <span id="ui-usdt">0.00</span>
+                    <div class="add-btn">⊕</div>
+                    <div class="tag" style="left: 15px;">BASE</div>
+                </div>
+                <div class="pill diamond" onclick="navTo('screen-diamond')">
+                    <div class="icon-left">💎</div>
+                    <span id="ui-diamonds">0</span>
+                    <div class="add-btn">⊕</div>
+                </div>
+            </div>
+
+            <!-- Stable Floating Buttons -->
+            <div class="btn btn-withdraw" onclick="navTo('screen-withdraw')">
+                <div class="circle">👛</div>Withdraw
+            </div>
+            <div class="btn btn-oasis" onclick="navTo('screen-oasis'); initOasis();">
+                <div class="circle">🌳</div>Egg<br>Oasis
+            </div>
+            <div class="btn btn-invite" onclick="navTo('screen-diamond')">
+                <div class="circle">🤝</div>Invite
+            </div>
+            <div class="btn btn-job">
+                <div class="circle">🏪</div>Job<br>Market
+            </div>
+        </div>
+
+        <!-- Scrollable Floors Container -->
+        <div class="floor-scroll-container" id="floors-container"></div>
+
+        <!-- Stable Bottom Nav -->
+        <div class="bottom-nav">
+            <div class="nav-item" onclick="navTo('screen-ranking'); loadRanking();">
+                <div class="nav-icon">🏆</div>Ranking
+            </div>
+            <div class="nav-item" onclick="navTo('screen-friends'); loadFriends();">
+                <div class="nav-icon">🤝</div>Friends
+            </div>
+            <div class="nav-item theft">
+                <div class="nav-icon">💰</div>Theft
+            </div>
+            <div class="nav-item" onclick="navTo('screen-settings');">
+                <div class="nav-icon" style="background: linear-gradient(135deg, #888, #444);">🛠️</div>Settings
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- INNER SCREENS                              -->
+    <!-- ========================================== -->
+
+    <!-- Withdraw Screen -->
+    <div id="screen-withdraw" class="screen">
+        <div class="page-header"><span class="back-btn" onclick="navTo('screen-home')">←</span><span>Withdrawal</span><span class="history-btn-top" onclick="loadHistory('withdraw'); navTo('screen-history')">History</span></div>
+        <div class="form-container">
+            <div class="info-box"><b>Exchange Rate:</b> 1 Blue Egg = $0.01 USDT<br><b>Minimum Withdrawal:</b> $2.00 (200 Eggs)</div>
+            <div class="form-group"><label>Enter Eggs Amount</label><input type="number" id="wd-eggs" class="input-field" placeholder="E.g. 250" onkeyup="calcExchange()"></div>
+            <div class="form-group"><label>You Will Receive (USDT)</label><input type="text" id="wd-usdt" class="input-field" value="0.00" readonly></div>
+            <div class="form-group"><label>Select Network</label><select id="wd-network" class="input-field"><option value="USDT TRC20">USDT TRC20</option><option value="USDT BEP20">USDT BEP20</option></select></div>
+            <div class="form-group"><label>Wallet Address</label><input type="text" id="wd-address" class="input-field" placeholder="Paste your address here"></div>
+            <button class="submit-btn" onclick="submitWithdraw()">Submit Withdrawal</button>
+        </div>
+    </div>
+
+    <!-- Deposit Screen -->
+    <div id="screen-deposit" class="screen">
+        <div class="page-header"><span class="back-btn" onclick="navTo('screen-home')">←</span><span>Deposit Base USDT</span><span class="history-btn-top" onclick="loadHistory('deposit'); navTo('screen-history')">History</span></div>
+        <div class="form-container">
+            <div class="info-box">Please send USDT to the exact address shown below. <b>Minimum Deposit:</b> $1.00</div>
+            <div class="form-group"><label>Select Network</label><select id="dep-network" class="input-field" onchange="updateDepositAddress()"><option value="USDT TRC20">USDT TRC20</option><option value="USDT BEP20">USDT BEP20</option></select></div>
+            <div class="form-group"><label>Company Wallet Address</label><div class="address-box"><span class="address-text" id="dep-address-txt">TKEmWeig1jtWLgPZp4pX4PHAsPsrFNdqf2</span><button class="copy-btn" onclick="copyAddress()">COPY</button></div></div>
+            <div class="form-group"><label>Amount Sent (USDT)</label><input type="number" id="dep-amount" class="input-field" placeholder="Enter amount sent"></div>
+            <div class="form-group"><label>Upload Payment Proof</label><input type="file" id="dep-proof" class="input-field" accept="image/*"></div>
+            <button class="submit-btn" onclick="submitDeposit()">Submit Deposit</button>
+        </div>
+    </div>
+
+    <!-- Diamond / Invites Rules Screen -->
+    <div id="screen-diamond" class="screen">
+        <div class="page-header"><span class="back-btn" onclick="navTo('screen-home')">←</span><span>My Diamonds</span><span></span></div>
+        <div class="form-container" style="text-align: center;">
+            <div style="font-size: 80px; margin: 10px 0;">💎</div>
+            <h2 style="color: #1b35a3; margin-bottom: 10px; text-shadow: 1px 1px 2px rgba(255,255,255,0.8);">Diamond Rewards</h2>
+            <div class="info-box" style="text-align: left;">Earn Diamonds by inviting new members! <br><br>When your referred member adopts any <b>Pro Plan</b>, you will automatically receive a <b>15% commission</b> in Diamonds.</div>
+            <button class="submit-btn" style="background: linear-gradient(135deg, #446bf2, #1b35a3);" onclick="alert('Your Referral Link: https://eggtycoon.app/?ref='+USER_ID.replace('user_','')+'\n\n(Link copied!)')">Copy Referral Link</button>
+            
+            <div class="info-box" style="margin-top:20px; text-align: left; background:#fff8e1; border-left:4px solid #f5a623;">
+                <b style="color:#d84315;">Exchange Diamonds for Blue Eggs</b><br>
+                <span style="font-size:12px;">Rate: 1 Diamond = 2 Eggs</span><br><br>
+                <div class="form-group" style="margin-bottom:10px;">
+                    <input type="number" id="exchange-diamond-input" class="input-field" placeholder="Amount to exchange" min="1">
+                </div>
+                <button class="submit-btn" style="background: linear-gradient(135deg, #f5a623, #d84315); padding: 10px;" onclick="exchangeDiamonds()">Convert to Eggs</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- History Screen -->
+    <div id="screen-history" class="screen">
+        <div class="page-header"><span class="back-btn" onclick="navTo('screen-home')">←</span><span id="history-title">History</span><span></span></div>
+        <div class="form-container"><ul id="history-ul" class="data-list"></ul></div>
+    </div>
+
+    <!-- Ranking Screen -->
+    <div id="screen-ranking" class="screen">
+        <div class="page-header"><span class="back-btn" onclick="navTo('screen-home')">←</span><span>Top 10 Ranking</span><span></span></div>
+        <div class="form-container">
+            <div class="info-box" style="text-align:center;">Top Global Egg Farmers 🏆</div>
+            <ul id="ranking-ul" class="data-list"></ul>
+        </div>
+    </div>
+
+    <!-- Friends Screen -->
+    <div id="screen-friends" class="screen">
+        <div class="page-header"><span class="back-btn" onclick="navTo('screen-home')">←</span><span>My Friends</span><span></span></div>
+        <div class="form-container">
+            <div style="text-align: center; font-size: 80px; margin-bottom: 20px;">🤝</div>
+            <div class="data-item">
+                <div class="hi-info"><span class="hi-title">Total Invites</span></div>
+                <div class="hi-status" style="background:#eaf3ff; color:#1b35a3; font-size:18px;" id="ui-invites">0</div>
+            </div>
+            <div class="data-item">
+                <div class="hi-info"><span class="hi-title">Invitation Earnings</span></div>
+                <div class="hi-status" style="background:#fff8e1; color:#d84315; font-size:18px;" id="ui-invite-earnings">0.00 ₮</div>
+            </div>
+            <button class="submit-btn" style="margin-top:20px;" onclick="navTo('screen-diamond')">Invite More Friends</button>
+        </div>
+    </div>
+
+    <!-- Settings Screen -->
+    <div id="screen-settings" class="screen">
+        <div class="page-header"><span class="back-btn" onclick="navTo('screen-home')">←</span><span>Settings</span><span></span></div>
+        <div class="form-container">
+            <div class="toggle-switch">
+                <div style="font-weight:bold; font-size:16px; color:#333;">🎵 Game Sounds</div>
+                <label class="switch">
+                    <input type="checkbox" id="sound-toggle" onchange="toggleSound()" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="info-box">Toggle this switch to turn the beautiful egg popping sound ON or OFF.</div>
+            
+            <button class="submit-btn" style="background: linear-gradient(135deg, #f53d3d, #c91f1f); margin-top: 30px;" onclick="processLogout(true)">Log Out</button>
+        </div>
+    </div>
+
+    <!-- Egg Oasis Screen -->
+    <div id="screen-oasis" class="screen">
+        <div class="page-header"><span class="back-btn" onclick="navTo('screen-home')">←</span><span>Egg Oasis</span><span></span></div>
+        <div class="form-container">
+            <div class="info-box">
+                <b>Pro Users Only!</b><br>
+                A fresh batch of 50 blue eggs drops globally every day. Find and click an available egg to claim it before someone else does!
+            </div>
+            <div class="oasis-header">
+                <h2 style="color:#fff; text-shadow: 1px 1px 3px rgba(0,0,0,0.8);">Remaining Eggs: <span id="oasis-remains" style="color:#ffcf25;">50</span>/50</h2>
+            </div>
+            <div class="oasis-grid" id="oasis-grid">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- 3D HEN LOGIC SYSTEM & BEAUTIFUL ANIMATIONS -->
+<script>
+    window.active3DAnimations = window.active3DAnimations || {};
+
+    // Global Audio context for procedural hen voice (clucking)
+    window.playHenVoice = function() {
+        if(!userData.soundEnabled) return;
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            
+            // Function to generate a single "cluck"
+            function makeCluck(timeOffset) {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                
+                osc.type = 'triangle';
+                // Drop pitch rapidly simulating chicken cluck
+                osc.frequency.setValueAtTime(400, ctx.currentTime + timeOffset);
+                osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + timeOffset + 0.1);
+                
+                gain.gain.setValueAtTime(0, ctx.currentTime + timeOffset);
+                gain.gain.linearRampToValueAtTime(0.4, ctx.currentTime + timeOffset + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + timeOffset + 0.1);
+                
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                
+                osc.start(ctx.currentTime + timeOffset);
+                osc.stop(ctx.currentTime + timeOffset + 0.15);
+            }
+            
+            // Play one cluck, occasionally followed by a second one
+            makeCluck(0);
+            if(Math.random() > 0.5) makeCluck(0.15); 
+            
+        } catch(e) {}
+    };
+
+    // Global Function to Build the Beautiful & Smart White/Blue 3D Hen Object
+    function create3DHenModel() {
+        const matBody = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8 }); 
+        const matNeck = new THREE.MeshStandardMaterial({ color: 0xf5f5f5, roughness: 0.7 }); 
+        const matWing = new THREE.MeshStandardMaterial({ color: 0x1e90ff, roughness: 0.6 }); 
+        const matTail = new THREE.MeshStandardMaterial({ color: 0x00008b, roughness: 0.8 }); 
+        
+        const matRed = new THREE.MeshStandardMaterial({ color: 0x00bfff, roughness: 0.5 }); 
+        const matYellow = new THREE.MeshStandardMaterial({ color: 0xffcc00, roughness: 0.5 }); 
+        const matEyeWhite = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.2 });
+        const matPupil = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.1 });
+        const matGlasses = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.1, metalness: 0.5 });
+
+        const hen = new THREE.Group();
+
+        const body = new THREE.Mesh(new THREE.SphereGeometry(1.2, 32, 32), matBody);
+        body.scale.set(1, 0.9, 1.2);
+        body.position.y = 1.5;
+        body.castShadow = true;
+        hen.add(body);
+
+        const headGroup = new THREE.Group();
+        headGroup.position.set(0, 2.3, 1.0);
+        hen.add(headGroup);
+
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.6, 32, 32), matNeck);
+        head.position.set(0, 0.3, 0.3);
+        head.castShadow = true;
+        headGroup.add(head);
+
+        const combGroup = new THREE.Group();
+        const combGeo = new THREE.SphereGeometry(0.18, 16, 16);
+        for(let i=0; i<3; i++) {
+            const c = new THREE.Mesh(combGeo, matRed);
+            c.position.set(0, 0.8 + (i==1 ? 0.05 : 0), 0.1 + (i*0.2));
+            c.scale.set(0.5, 1.5, 1);
+            c.castShadow = true;
+            combGroup.add(c);
+        }
+        headGroup.add(combGroup);
+
+        const wattle = new THREE.Mesh(new THREE.SphereGeometry(0.2, 16, 16), matRed);
+        wattle.position.set(0, 0, 0.7);
+        wattle.scale.set(0.5, 1.2, 1);
+        wattle.castShadow = true;
+        headGroup.add(wattle);
+
+        const beak = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.6, 16), matYellow);
+        beak.rotation.x = Math.PI / 2;
+        beak.position.set(0, 0.2, 0.9);
+        beak.castShadow = true;
+        headGroup.add(beak);
+
+        function createEye(xPos) {
+            const eyeGroup = new THREE.Group();
+            const eyeWhite = new THREE.Mesh(new THREE.SphereGeometry(0.12, 16, 16), matEyeWhite);
+            const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.06, 16, 16), matPupil);
+            pupil.position.set(xPos > 0 ? 0.08 : -0.08, 0, 0.08);
+            eyeGroup.add(eyeWhite);
+            eyeGroup.add(pupil);
+            eyeGroup.position.set(xPos, 0.4, 0.6);
+            return eyeGroup;
+        }
+        headGroup.add(createEye(0.35));
+        headGroup.add(createEye(-0.35));
+
+        const glassesGroup = new THREE.Group();
+        const frameGeo = new THREE.TorusGeometry(0.18, 0.03, 8, 24);
+        const leftFrame = new THREE.Mesh(frameGeo, matGlasses);
+        leftFrame.position.set(-0.35, 0.4, 0.65);
+        leftFrame.rotation.y = -0.2;
+        const rightFrame = new THREE.Mesh(frameGeo, matGlasses);
+        rightFrame.position.set(0.35, 0.4, 0.65);
+        rightFrame.rotation.y = 0.2;
+        
+        const bridge = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.35), matGlasses);
+        bridge.rotation.z = Math.PI / 2;
+        bridge.position.set(0, 0.4, 0.72);
+
+        glassesGroup.add(leftFrame);
+        glassesGroup.add(rightFrame);
+        glassesGroup.add(bridge);
+        headGroup.add(glassesGroup);
+
+        const wingGeo = new THREE.SphereGeometry(0.7, 32, 16);
+        const leftWingGroup = new THREE.Group();
+        leftWingGroup.position.set(-1.1, 1.7, 0);
+        const leftWing = new THREE.Mesh(wingGeo, matWing);
+        leftWing.scale.set(0.2, 0.6, 0.9);
+        leftWing.position.set(-0.1, -0.3, 0);
+        leftWing.castShadow = true;
+        leftWingGroup.add(leftWing);
+        hen.add(leftWingGroup);
+
+        const rightWingGroup = new THREE.Group();
+        rightWingGroup.position.set(1.1, 1.7, 0);
+        const rightWing = new THREE.Mesh(wingGeo, matWing);
+        rightWing.scale.set(0.2, 0.6, 0.9);
+        rightWing.position.set(0.1, -0.3, 0);
+        rightWing.castShadow = true;
+        rightWingGroup.add(rightWing);
+        hen.add(rightWingGroup);
+
+        const tailGroup = new THREE.Group();
+        tailGroup.position.set(0, 1.6, -1.2);
+        const tailGeo = new THREE.ConeGeometry(0.2, 1.2, 16);
+        for(let i=-1; i<=1; i++) {
+            const t = new THREE.Mesh(tailGeo, matTail);
+            t.rotation.x = -Math.PI / 3;
+            t.rotation.z = i * 0.3;
+            t.position.set(i*0.2, 0, 0);
+            t.castShadow = true;
+            tailGroup.add(t);
+        }
+        hen.add(tailGroup);
+
+        function createLeg(xPos) {
+            const legGroup = new THREE.Group();
+            legGroup.position.set(xPos, 1.0, 0);
+            const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.06, 0.8, 16), matYellow);
+            leg.position.y = -0.4;
+            leg.castShadow = true;
+            legGroup.add(leg);
+            const footBase = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.1, 0.15), matYellow);
+            footBase.position.y = -0.8;
+            legGroup.add(footBase);
+            const toeGeo = new THREE.CylinderGeometry(0.04, 0.02, 0.4, 8);
+            toeGeo.rotateX(Math.PI / 2);
+            for(let i=-1; i<=1; i++) {
+                const toe = new THREE.Mesh(toeGeo, matYellow);
+                toe.position.set(i*0.15, -0.8, 0.2);
+                toe.rotation.y = i * 0.4;
+                toe.castShadow = true;
+                legGroup.add(toe);
+            }
+            const backToe = new THREE.Mesh(toeGeo, matYellow);
+            backToe.position.set(0, -0.8, -0.15);
+            backToe.rotation.y = Math.PI;
+            backToe.scale.set(1, 1, 0.5);
+            backToe.castShadow = true;
+            legGroup.add(backToe);
+            return legGroup;
+        }
+        const rightLeg = createLeg(0.4);
+        const leftLeg = createLeg(-0.4);
+        hen.add(rightLeg);
+        hen.add(leftLeg);
+
+        hen.userData = { headGroup, rightWingGroup, leftWingGroup, tailGroup, rightLeg, leftLeg };
+        return hen;
+    }
+
+    // Beautiful 2D Hen House implementation embedded into the 3D scene
+    function create2DHenHouse(floorId) {
+        const canvas = document.createElement('canvas');
+        canvas.width = 512;
+        canvas.height = 512;
+        const ctx = canvas.getContext('2d');
+        
+        // Define vibrant colors based on the floor tier
+        const colors = {
+            'f1': { base: '#e67e22', roof: '#c0392b' },
+            'f2': { base: '#c0392b', roof: '#2c3e50' },
+            'f3': { base: '#2980b9', roof: '#d35400' },
+            'f4': { base: '#8e44ad', roof: '#27ae60' },
+            'f5': { base: '#f1c40f', roof: '#e74c3c' }
+        };
+        const c = colors[floorId] || colors['f1'];
+
+        // Bottom shadow oval
+        ctx.fillStyle = 'rgba(0,0,0,0.3)';
+        ctx.beginPath();
+        ctx.ellipse(256, 480, 220, 30, 0, 0, Math.PI*2);
+        ctx.fill();
+
+        // Background Chimney
+        ctx.fillStyle = '#7f8c8d';
+        ctx.fillRect(340, 100, 40, 80);
+        ctx.fillStyle = '#bdc3c7';
+        ctx.fillRect(330, 90, 60, 20);
+
+        // House Base Rectangle
+        ctx.fillStyle = c.base;
+        ctx.fillRect(86, 220, 340, 240);
+        
+        // Horizontal Wood Plank Lines
+        ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+        ctx.lineWidth = 4;
+        for(let i = 250; i < 450; i += 35) {
+            ctx.beginPath();
+            ctx.moveTo(86, i);
+            ctx.lineTo(426, i);
+            ctx.stroke();
+        }
+
+        // Round-top Door
+        ctx.fillStyle = '#2c3e50';
+        ctx.beginPath();
+        ctx.roundRect(206, 310, 100, 150, [15, 15, 0, 0]);
+        ctx.fill();
+        
+        // Golden Door Knob
+        ctx.fillStyle = '#f1c40f';
+        ctx.beginPath();
+        ctx.arc(285, 390, 8, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Left and Right Windows
+        ctx.fillStyle = '#87CEEB';
+        ctx.fillRect(110, 270, 60, 60);
+        ctx.fillRect(340, 270, 60, 60);
+        
+        ctx.strokeStyle = '#ecf0f1';
+        ctx.lineWidth = 6;
+        // Window Frames
+        ctx.strokeRect(110, 270, 60, 60);
+        ctx.strokeRect(340, 270, 60, 60);
+        // Window Crossbars
+        ctx.beginPath(); ctx.moveTo(140, 270); ctx.lineTo(140, 330); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(110, 300); ctx.lineTo(170, 300); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(370, 270); ctx.lineTo(370, 330); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(340, 300); ctx.lineTo(400, 300); ctx.stroke();
+
+        // Triangular Roof
+        ctx.fillStyle = c.roof;
+        ctx.beginPath();
+        ctx.moveTo(256, 70);
+        ctx.lineTo(36, 220);
+        ctx.lineTo(476, 220);
+        ctx.fill();
+        
+        // Roof Outline/Trim
+        ctx.strokeStyle = '#34495e';
+        ctx.lineWidth = 15;
+        ctx.lineJoin = 'round';
+        ctx.beginPath();
+        ctx.moveTo(256, 70);
+        ctx.lineTo(36, 220);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(256, 70);
+        ctx.lineTo(476, 220);
+        ctx.stroke();
+
+        // Cute Loft Round Window
+        ctx.fillStyle = '#87CEEB';
+        ctx.beginPath();
+        ctx.arc(256, 160, 25, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#ecf0f1';
+        ctx.lineWidth = 5;
+        ctx.beginPath(); ctx.arc(256, 160, 25, 0, Math.PI * 2); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(256, 135); ctx.lineTo(256, 185); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(231, 160); ctx.lineTo(281, 160); ctx.stroke();
+
+        // Create texture and a material that does NOT react to lighting, keeping it beautifully flat 2D
+        const tex = new THREE.CanvasTexture(canvas);
+        const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, side: THREE.DoubleSide });
+        const mesh = new THREE.Mesh(new THREE.PlaneGeometry(3.5, 3.5), mat);
+        return mesh;
+    }
+
+    // --- 1. Header Hen Initializer ---
+    function initHeader3DHen() {
+        const container = document.getElementById('hen-3d-header-container');
+        if(!container) return;
+        if(window.active3DAnimations['header']) cancelAnimationFrame(window.active3DAnimations['header']);
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 100);
+        camera.position.set(0, 1.2, 5.5);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        container.innerHTML = ''; container.appendChild(renderer.domElement);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true; controls.enableZoom = false; controls.enablePan = false;
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6); scene.add(ambientLight);
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(5, 10, 5); dirLight.castShadow = true; scene.add(dirLight);
+
+        const hen = create3DHenModel();
+        hen.position.set(0, -1.2, 0); hen.scale.set(0.7, 0.7, 0.7);
+        scene.add(hen);
+
+        const clock = new THREE.Clock();
+        function animate() {
+            window.active3DAnimations['header'] = requestAnimationFrame(animate);
+            const time = clock.getElapsedTime();
+            const walkSpeed = time * 3;
+            
+            hen.position.x = Math.cos(time * 0.5) * 0.5; 
+            hen.position.z = Math.sin(time * 0.5) * 0.5;
+            hen.rotation.y = (time * 0.5) + Math.PI;
+
+            hen.position.y = (Math.abs(Math.sin(walkSpeed)) * 0.15) - 1.2;
+            hen.userData.rightLeg.rotation.x = Math.sin(walkSpeed) * 0.6;
+            hen.userData.leftLeg.rotation.x = Math.sin(walkSpeed + Math.PI) * 0.6;
+            hen.userData.headGroup.rotation.x = Math.sin(walkSpeed) * 0.3;
+            hen.userData.rightWingGroup.rotation.z = Math.abs(Math.sin(walkSpeed)) * 0.3 + 0.1;
+            hen.userData.leftWingGroup.rotation.z = -(Math.abs(Math.sin(walkSpeed)) * 0.3 + 0.1);
+            hen.userData.tailGroup.rotation.y = Math.sin(walkSpeed) * 0.2;
+
+            renderer.render(scene, camera);
+        }
+        window.addEventListener('resize', () => {
+            if(container.clientWidth > 0) {
+                camera.aspect = container.clientWidth / container.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(container.clientWidth, container.clientHeight);
+            }
+        });
+        animate();
+    }
+
+    // --- 2. Adopted Floor 3D Initializer (Beautiful full surface Grass & 2D House) ---
+    function initFloor3D(fId) {
+        const container = document.getElementById('floor-3d-' + fId);
+        if(!container) return;
+
+        if(window.active3DAnimations[fId]) cancelAnimationFrame(window.active3DAnimations[fId]);
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
+        camera.position.set(0, 2.5, 7);
+        camera.lookAt(0, 0.5, 0);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        container.innerHTML = '';
+        container.appendChild(renderer.domElement);
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.8); scene.add(ambientLight);
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(5, 10, 5); dirLight.castShadow = true; scene.add(dirLight);
+
+        // BEAUTIFUL 2D REAL-TYPE GREENERY & FLOWERS TEXTURE
+        const canvas2d = document.createElement('canvas');
+        canvas2d.width = 1024;
+        canvas2d.height = 1024;
+        const ctx2d = canvas2d.getContext('2d');
+        
+        // Base soil/dark green
+        ctx2d.fillStyle = '#1e5622';
+        ctx2d.fillRect(0, 0, 1024, 1024);
+        
+        // Draw thousands of 2D grass strokes for a "real type" look
+        for(let i=0; i<40000; i++) {
+            let x = Math.random() * 1024;
+            let y = Math.random() * 1024;
+            let h = 10 + Math.random() * 20;
+            ctx2d.fillStyle = Math.random() > 0.5 ? '#27ae60' : (Math.random() > 0.5 ? '#2ecc71' : '#1e8449');
+            ctx2d.globalAlpha = 0.8;
+            ctx2d.fillRect(x, y, 2, h);
+        }
+        
+        // Draw beautiful 2D flowers over the grass
+        const flowerColors = ['#ffffff', '#ff99cc', '#ffcc00', '#cc99ff', '#66ccff'];
+        for(let i=0; i<300; i++) {
+            let x = Math.random() * 1024;
+            let y = Math.random() * 1024;
+            let fColor = flowerColors[Math.floor(Math.random() * flowerColors.length)];
+            
+            ctx2d.globalAlpha = 1.0;
+            ctx2d.fillStyle = fColor;
+            
+            // Petals
+            for(let p=0; p<5; p++) {
+                let angle = (p / 5) * Math.PI * 2;
+                ctx2d.beginPath();
+                ctx2d.arc(x + Math.cos(angle)*6, y + Math.sin(angle)*6, 5, 0, Math.PI*2);
+                ctx2d.fill();
+            }
+            // Center
+            ctx2d.fillStyle = '#ffaa00';
+            ctx2d.beginPath();
+            ctx2d.arc(x, y, 4, 0, Math.PI*2);
+            ctx2d.fill();
+        }
+        
+        const floorTexture = new THREE.CanvasTexture(canvas2d);
+        floorTexture.wrapS = THREE.RepeatWrapping;
+        floorTexture.wrapT = THREE.RepeatWrapping;
+        floorTexture.repeat.set(4, 2);
+
+        // Huge floor mesh covering the full horizon bottom surface
+        const floorGeo = new THREE.PlaneGeometry(40, 20);
+        const floorMat = new THREE.MeshStandardMaterial({ map: floorTexture, roughness: 1 });
+        const floorMesh = new THREE.Mesh(floorGeo, floorMat);
+        floorMesh.rotation.x = -Math.PI / 2;
+        floorMesh.position.y = -0.25;
+        floorMesh.receiveShadow = true;
+        scene.add(floorMesh);
+
+        // BEAUTIFUL WOOD FENCE MATERIAL & GENERATION
+        const fCanvas = document.createElement('canvas');
+        fCanvas.width = 256; fCanvas.height = 256;
+        const fCtx = fCanvas.getContext('2d');
+        fCtx.fillStyle = '#5c3a21'; // Dark wood base
+        fCtx.fillRect(0,0,256,256);
+        fCtx.fillStyle = '#8b5a2b'; // Lighter wood lines
+        for(let i=0; i<256; i+=12) {
+            fCtx.globalAlpha = 0.6 + Math.random()*0.4;
+            fCtx.fillRect(0, i, 256, 3 + Math.random()*3);
+        }
+        const fTex = new THREE.CanvasTexture(fCanvas);
+        fTex.wrapS = THREE.RepeatWrapping; fTex.wrapT = THREE.RepeatWrapping;
+        const fMat = new THREE.MeshStandardMaterial({ map: fTex, roughness: 0.9, color: 0xffffff });
+
+        const fenceGroup = new THREE.Group();
+        const postGeo = new THREE.BoxGeometry(0.15, 0.6, 0.15);
+        const railGeoX = new THREE.BoxGeometry(8.2, 0.1, 0.05); // For front/back
+        const railGeoZ = new THREE.BoxGeometry(0.05, 0.1, 3.6); // For sides
+
+        // Back Fence (Z = -1.8)
+        const backRail1 = new THREE.Mesh(railGeoX, fMat); backRail1.position.set(0, 0.3, -1.8);
+        const backRail2 = new THREE.Mesh(railGeoX, fMat); backRail2.position.set(0, 0.1, -1.8);
+        backRail1.castShadow = true; backRail2.castShadow = true;
+        fenceGroup.add(backRail1, backRail2);
+
+        // Front Fence (Z = 1.8)
+        const frontRail1 = new THREE.Mesh(railGeoX, fMat); frontRail1.position.set(0, 0.3, 1.8);
+        const frontRail2 = new THREE.Mesh(railGeoX, fMat); frontRail2.position.set(0, 0.1, 1.8);
+        frontRail1.castShadow = true; frontRail2.castShadow = true;
+        fenceGroup.add(frontRail1, frontRail2);
+
+        // Left Fence (X = -4.1)
+        const leftRail1 = new THREE.Mesh(railGeoZ, fMat); leftRail1.position.set(-4.1, 0.3, 0);
+        const leftRail2 = new THREE.Mesh(railGeoZ, fMat); leftRail2.position.set(-4.1, 0.1, 0);
+        leftRail1.castShadow = true; leftRail2.castShadow = true;
+        fenceGroup.add(leftRail1, leftRail2);
+
+        // Right Fence (X = 4.1)
+        const rightRail1 = new THREE.Mesh(railGeoZ, fMat); rightRail1.position.set(4.1, 0.3, 0);
+        const rightRail2 = new THREE.Mesh(railGeoZ, fMat); rightRail2.position.set(4.1, 0.1, 0);
+        rightRail1.castShadow = true; rightRail2.castShadow = true;
+        fenceGroup.add(rightRail1, rightRail2);
+
+        // Posts
+        for(let x = -4.1; x <= 4.1; x += 2.05) {
+            const pb = new THREE.Mesh(postGeo, fMat); pb.position.set(x, 0.05, -1.8); pb.castShadow = true; fenceGroup.add(pb);
+            const pf = new THREE.Mesh(postGeo, fMat); pf.position.set(x, 0.05, 1.8); pf.castShadow = true; fenceGroup.add(pf);
+        }
+        for(let z = -1.8; z <= 1.8; z += 1.8) {
+            if(z > -1.7 && z < 1.7) { // middle posts
+                const pl = new THREE.Mesh(postGeo, fMat); pl.position.set(-4.1, 0.05, z); pl.castShadow = true; fenceGroup.add(pl);
+                const pr = new THREE.Mesh(postGeo, fMat); pr.position.set(4.1, 0.05, z); pr.castShadow = true; fenceGroup.add(pr);
+            }
+        }
+        scene.add(fenceGroup);
+
+        // Add 2D Beautiful Hen House
+        const house = create2DHenHouse(fId);
+        house.position.set(0, 1.4, -1.5);
+        scene.add(house);
+
+        // Add Smart 3D Hen
+        const hen = create3DHenModel();
+        hen.scale.set(0.45, 0.45, 0.45); 
+        scene.add(hen);
+
+        const clock = new THREE.Clock();
+        
+        // Intelligent State Machine Variables
+        let state = 'WANDERING'; // States: WANDERING, EATING, GOING_HOME, AT_HOME
+        let stateTimer = Math.random() * 3 + 2; 
+        // Ensure within boundary: X is [-3.5, 3.5], Z is [-0.2, 1.3]
+        let targetPos = new THREE.Vector3((Math.random()-0.5)*7, 0, Math.random()*1.5 - 0.2);
+        let homePos = new THREE.Vector3(0, 0, -1.0); // Doorway position mapped nicely in front of the 2D house
+        
+        let walkTime = Math.random() * 10;
+        let soundTimer = Math.random() * 5 + 3; // Timer for Hen Voice
+
+        function animate() {
+            window.active3DAnimations[fId] = requestAnimationFrame(animate);
+            const delta = clock.getDelta();
+            const elapsed = clock.getElapsedTime();
+            
+            // Generate occasional Hen Voice (clucks)
+            soundTimer -= delta;
+            if (soundTimer <= 0 && state !== 'AT_HOME') {
+                if(window.playHenVoice) window.playHenVoice();
+                soundTimer = Math.random() * 8 + 4; // Reset sound timer between 4 to 12s
+            }
+
+            if (state === 'WANDERING' || state === 'GOING_HOME') {
+                // Move towards target
+                let dir = new THREE.Vector3().subVectors(targetPos, hen.position);
+                dir.y = 0;
+                let dist = dir.length();
+                
+                if (dist > 0.05) {
+                    dir.normalize();
+                    let speed = 0.6; // Slightly slower, smoother movement
+                    hen.position.addScaledVector(dir, delta * speed);
+                    
+                    // Smooth Rotation towards target
+                    let targetAngle = Math.atan2(dir.x, dir.z);
+                    let currentAngle = hen.rotation.y;
+                    while(targetAngle - currentAngle > Math.PI) currentAngle += Math.PI * 2;
+                    while(targetAngle - currentAngle < -Math.PI) currentAngle -= Math.PI * 2;
+                    hen.rotation.y = THREE.MathUtils.lerp(currentAngle, targetAngle, 4 * delta); // Smoother turning
+                    
+                    // Walk Cycle Animations
+                    walkTime += delta * 10;
+                    hen.rotation.z = THREE.MathUtils.lerp(hen.rotation.z, 0, 10 * delta);
+                    hen.position.y = (Math.abs(Math.sin(walkTime)) * 0.1);
+                    hen.userData.headGroup.rotation.x = Math.sin(walkTime) * 0.3;
+                    hen.userData.rightLeg.rotation.x = Math.sin(walkTime) * 0.8;
+                    hen.userData.leftLeg.rotation.x = Math.sin(walkTime + Math.PI) * 0.8;
+                    hen.userData.rightWingGroup.rotation.z = Math.abs(Math.sin(walkTime)) * 0.3 + 0.1;
+                    hen.userData.leftWingGroup.rotation.z = -(Math.abs(Math.sin(walkTime)) * 0.3 + 0.1);
+                    hen.userData.tailGroup.rotation.y = Math.sin(walkTime) * 0.2;
+                } else {
+                    // Reached target destination
+                    if (state === 'WANDERING') {
+                        state = 'EATING';
+                        stateTimer = 2 + Math.random() * 3; // Eat for 2 to 5 seconds
+                    } else if (state === 'GOING_HOME') {
+                        state = 'AT_HOME';
+                        stateTimer = 4 + Math.random() * 6; // Stay inside home for 4 to 10 seconds
+                        hen.visible = false; // Hen goes inside
+                    }
+                }
+            } else if (state === 'EATING') {
+                stateTimer -= delta;
+                let peckSpeed = elapsed * 15;
+                let peckPhase = Math.sin(peckSpeed);
+
+                // Eating Animation Mechanics
+                hen.rotation.z = THREE.MathUtils.lerp(hen.rotation.z, 0.4, 5 * delta); // Lean body forward
+                hen.position.y = THREE.MathUtils.lerp(hen.position.y, -0.15, 5 * delta); // Lower height
+                hen.userData.headGroup.rotation.x = peckPhase > 0 ? peckPhase * 0.8 : 0; // Pecking motion
+                
+                // Keep limbs at rest while eating
+                hen.userData.rightLeg.rotation.x = THREE.MathUtils.lerp(hen.userData.rightLeg.rotation.x, 0, 10 * delta);
+                hen.userData.leftLeg.rotation.x = THREE.MathUtils.lerp(hen.userData.leftLeg.rotation.x, 0, 10 * delta);
+                hen.userData.rightWingGroup.rotation.z = THREE.MathUtils.lerp(hen.userData.rightWingGroup.rotation.z, 0.1, 10 * delta);
+                hen.userData.leftWingGroup.rotation.z = THREE.MathUtils.lerp(hen.userData.leftWingGroup.rotation.z, -0.1, 10 * delta);
+                hen.userData.tailGroup.rotation.y = THREE.MathUtils.lerp(hen.userData.tailGroup.rotation.y, 0, 10 * delta);
+
+                if (stateTimer <= 0) {
+                    if (Math.random() < 0.3) { // 30% chance to go rest at home after eating
+                        state = 'GOING_HOME';
+                        targetPos.copy(homePos);
+                    } else { // 70% chance to wander to a new spot
+                        state = 'WANDERING';
+                        targetPos.set((Math.random()-0.5)*7, 0, Math.random()*1.5 - 0.2);
+                    }
+                }
+            } else if (state === 'AT_HOME') {
+                stateTimer -= delta;
+                if (stateTimer <= 0) {
+                    state = 'WANDERING';
+                    hen.visible = true; // Hen emerges from house
+                    hen.position.copy(homePos);
+                    targetPos.set((Math.random()-0.5)*7, 0, Math.random()*1.5 - 0.2);
+                }
+            }
+
+            renderer.render(scene, camera);
+        }
+        animate();
+    }
+
+    // Start Header Hen on load
+    window.addEventListener('load', initHeader3DHen);
+</script>
+
+<!-- Firebase SDKs & Game Logic -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getDatabase, ref, set, push, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDi-kFiW7RhPuZqtzD9o4ouNBYLPeKi9iI",
+        databaseURL: "https://farming-363ed-default-rtdb.asia-southeast1.firebasedatabase.app/",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    
+    // Global State
+    let USER_ID = null; 
+    let userData = { eggs: 0, usdt: 0, diamonds: 0, floors: null, soundEnabled: true, invites: 0, inviteEarnings: 0 };
+    let gameInterval = null;
+    let currentCaptchaAnswer = 0;
+    let autoLogoutTimer = null;
+    let generatedWhatsappOtp = null;
+    let targetResetPhone = null;
+    let currentEggCounts = {};
+    const loader = document.getElementById('loader');
+
+    // EGG GENERATION PARAMETERS
+    // Eggs mathematically divided in a Day (86400s). e.g., 86400 / 5 eggs = 17280 seconds per egg.
+    const FLOORS = [
+        { id: 'f1', cost: 0,  capacity: 5,  time_per_egg: 17280, rate_desc: "5 Eggs / Day", name: "1st Floor (Free)" },
+        { id: 'f2', cost: 5,  capacity: 15, time_per_egg: 5760,  rate_desc: "15 Eggs / Day", name: "2nd Floor" },
+        { id: 'f3', cost: 15, capacity: 30, time_per_egg: 2880,  rate_desc: "30 Eggs / Day", name: "3rd Floor" },
+        { id: 'f4', cost: 25, capacity: 45, time_per_egg: 1920,  rate_desc: "45 Eggs / Day", name: "4th Floor" },
+        { id: 'f5', cost: 50, capacity: 70, time_per_egg: 1234,  rate_desc: "70 Eggs / Day", name: "5th Floor" }
+    ];
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const refCode = urlParams.get('ref');
+        if(refCode) {
+            const inviteEl = document.getElementById('reg-invite');
+            if(inviteEl) inviteEl.value = refCode;
+        }
+    });
+
+    const countryCodes = [
+        "+1 (US/CA)", "+44 (UK)", "+91 (IN)", "+61 (AU)", "+971 (UAE)", "+93 (AF)", "+355 (AL)", "+213 (DZ)", "+376 (AD)", "+244 (AO)", "+54 (AR)", "+374 (AM)", "+43 (AT)", "+994 (AZ)", "+973 (BH)", "+880 (BD)", "+375 (BY)", "+32 (BE)", "+501 (BZ)", "+229 (BJ)", "+975 (BT)", "+591 (BO)", "+387 (BA)", "+267 (BW)", "+55 (BR)", "+359 (BG)", "+226 (BF)", "+257 (BI)", "+855 (KH)", "+237 (CM)", "+238 (CV)", "+236 (CF)", "+235 (TD)", "+56 (CL)", "+86 (CN)", "+57 (CO)", "+269 (KM)", "+242 (CG)", "+506 (CR)", "+385 (HR)", "+53 (CU)", "+357 (CY)", "+420 (CZ)", "+45 (DK)", "+253 (DJ)", "+593 (EC)", "+20 (EG)", "+503 (SV)", "+240 (GQ)", "+291 (ER)", "+372 (EE)", "+251 (ET)", "+679 (FJ)", "+358 (FI)", "+33 (FR)", "+241 (GA)", "+220 (GM)", "+995 (GE)", "+49 (DE)", "+233 (GH)", "+30 (GR)", "+502 (GT)", "+224 (GN)", "+245 (GW)", "+592 (GY)", "+509 (HT)", "+504 (HN)", "+36 (HU)", "+354 (IS)", "+62 (ID)", "+98 (IR)", "+964 (IQ)", "+353 (IE)", "+972 (IL)", "+39 (IT)", "+225 (CI)", "+81 (JP)", "+962 (JO)", "+7 (KZ/RU)", "+254 (KE)", "+965 (KW)", "+996 (KG)", "+856 (LA)", "+371 (LV)", "+961 (LB)", "+266 (LS)", "+231 (LR)", "+218 (LY)", "+423 (LI)", "+370 (LT)", "+352 (LU)", "+389 (MK)", "+261 (MG)", "+265 (MW)", "+60 (MY)", "+960 (MV)", "+223 (ML)", "+356 (MT)", "+222 (MR)", "+230 (MU)", "+52 (MX)", "+373 (MD)", "+377 (MC)", "+976 (MN)", "+382 (ME)", "+212 (MA)", "+258 (MZ)", "+95 (MM)", "+264 (NA)", "+977 (NP)", "+31 (NL)", "+64 (NZ)", "+505 (NI)", "+227 (NE)", "+234 (NG)", "+47 (NO)", "+968 (OM)", "+92 (PK)", "+507 (PA)", "+675 (PG)", "+595 (PY)", "+51 (PE)", "+63 (PH)", "+48 (PL)", "+351 (PT)", "+974 (QA)", "+40 (RO)", "+250 (RW)", "+966 (SA)", "+221 (SN)", "+381 (RS)", "+248 (SC)", "+232 (SL)", "+65 (SG)", "+421 (SK)", "+386 (SI)", "+252 (SO)", "+27 (ZA)", "+82 (KR)", "+34 (ES)", "+94 (LK)", "+249 (SD)", "+597 (SR)", "+268 (SZ)", "+46 (SE)", "+41 (CH)", "+963 (SY)", "+886 (TW)", "+992 (TJ)", "+255 (TZ)", "+66 (TH)", "+228 (TG)", "+216 (TN)", "+90 (TR)", "+993 (TM)", "+256 (UG)", "+380 (UA)", "+598 (UY)", "+998 (UZ)", "+58 (VE)", "+84 (VN)", "+967 (YE)", "+260 (ZM)", "+263 (ZW)"
+    ];
+    document.querySelectorAll('.country-select').forEach(select => {
+        countryCodes.forEach(code => { select.innerHTML += `<option value="${code.split(' ')[0]}">${code}</option>`; });
+    });
+
+    window.navTo = function(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+        if(screenId === 'screen-home') {
+            document.getElementById('wd-eggs').value = ''; document.getElementById('wd-usdt').value = '0.00';
+            document.getElementById('wd-address').value = ''; document.getElementById('dep-amount').value = ''; document.getElementById('dep-proof').value = '';
+        }
+    };
+
+    async function getUserIP() {
+        try {
+            let res = await fetch('https://api.ipify.org?format=json'); let data = await res.json(); return data.ip;
+        } catch(e) { return 'unknown_ip_' + Math.floor(Math.random() * 1000000); }
+    }
+
+    window.generateCaptcha = function(prefix) {
+        if(!document.getElementById(`${prefix}-captcha-text`)) return;
+        let a = Math.floor(Math.random() * 10) + 1; let b = Math.floor(Math.random() * 10) + 1;
+        currentCaptchaAnswer = a + b;
+        document.getElementById(`${prefix}-captcha-text`).innerText = `${a} + ${b} = ?`;
+        document.getElementById(`${prefix}-captcha-input`).value = '';
+    }
+
+    window.navToAuth = function(screenId) {
+        navTo(screenId);
+        if(screenId === 'screen-login') generateCaptcha('log'); if(screenId === 'screen-register') generateCaptcha('reg');
+        if(screenId === 'screen-login') {
+            document.getElementById('fg-step2').style.display = 'none'; document.getElementById('fg-btn-send').style.display = 'block';
+            document.getElementById('fg-btn-reset').style.display = 'none'; document.getElementById('fg-phone').removeAttribute('readonly');
+            document.getElementById('fg-code').removeAttribute('disabled');
+        }
+    }
+
+    generateCaptcha('reg');
+
+    window.sendWhatsappCode = function() {
+        const code = document.getElementById('fg-code').value; const phone = document.getElementById('fg-phone').value.trim();
+        if(!/^\d{10}$/.test(phone)) return alert("Please enter a valid 10-digit registered phone number.");
+        loader.style.display = 'flex';
+        const authRef = ref(db, 'auth_users/' + phone);
+        get(authRef).then(snap => {
+            loader.style.display = 'none'; if(!snap.exists()) return alert("No account found for this phone number.");
+            generatedWhatsappOtp = Math.floor(100000 + Math.random() * 900000); targetResetPhone = phone;
+            alert(`💬 WhatsApp Message sent to ${code} ${phone}:\n\n"Your Egg Tycoon password reset code is: ${generatedWhatsappOtp}\nPlease do not share this code with anyone."`);
+            document.getElementById('fg-step2').style.display = 'block'; document.getElementById('fg-btn-send').style.display = 'none';
+            document.getElementById('fg-btn-reset').style.display = 'block'; document.getElementById('fg-phone').setAttribute('readonly', true);
+            document.getElementById('fg-code').setAttribute('disabled', true);
+        }).catch(err => { loader.style.display = 'none'; alert("Database Error: " + err.message); });
+    }
+
+    window.processResetPassword = function() {
+        const otpInput = parseInt(document.getElementById('fg-otp').value); const newPwd = document.getElementById('fg-new-pwd').value;
+        if(otpInput !== generatedWhatsappOtp) return alert("Incorrect WhatsApp security code.");
+        if(newPwd.length < 6) return alert("New password must be at least 6 characters.");
+        loader.style.display = 'flex';
+        update(ref(db, 'auth_users/' + targetResetPhone), { password: btoa(newPwd) }).then(() => {
+            loader.style.display = 'none'; alert("Success! Your password has been successfully reset. Please log in with your new password.");
+            document.getElementById('fg-phone').value = ''; document.getElementById('fg-otp').value = ''; document.getElementById('fg-new-pwd').value = '';
+            navToAuth('screen-login');
+        }).catch(err => { loader.style.display = 'none'; alert("Database Error: " + err.message); });
+    }
+
+    window.processRegister = async function() {
+        const name = document.getElementById('reg-name').value.trim(); const code = document.getElementById('reg-code').value;
+        const phone = document.getElementById('reg-phone').value.trim(); const pwd = document.getElementById('reg-password').value;
+        const inviteCode = document.getElementById('reg-invite').value.trim(); const cap = parseInt(document.getElementById('reg-captcha-input').value);
+
+        if(!name) return alert("Please enter your name.");
+        if(!/^\d{10}$/.test(phone)) return alert("Phone number must be exactly 10 digits.");
+        if(pwd.length < 6) return alert("Password must be at least 6 characters.");
+        if(cap !== currentCaptchaAnswer) { alert("Incorrect verification answer!"); generateCaptcha('reg'); return; }
+
+        loader.style.display = 'flex';
+        let userIP = await getUserIP(); let sanitizedIP = userIP.replace(/[\.\:]/g, '_'); 
+        const ipRef = ref(db, 'used_ips/' + sanitizedIP);
+        get(ipRef).then(ipSnap => {
+            let isBlocked = false; if(ipSnap.exists()) isBlocked = true; 
+            const authRef = ref(db, 'auth_users/' + phone);
+            get(authRef).then(snap => {
+                if(snap.exists()) {
+                    loader.style.display = 'none'; alert("This phone number is already registered. Please Login."); navToAuth('screen-login');
+                } else {
+                    set(authRef, { name: name, country_code: code, password: btoa(pwd), invited_by: inviteCode || null, created_at: new Date().toLocaleString(), ip_address: userIP, blocked: isBlocked
+                    }).then(() => {
+                        if(!isBlocked) set(ipRef, phone); 
+                        loader.style.display = 'none';
+                        if(isBlocked) alert("Registration processed, but account has been BLOCKED due to multiple registrations on the same IP Address.");
+                        else alert("Registration Successful! Please login.");
+                        navToAuth('screen-login');
+                    });
+                }
+            }).catch(err => { loader.style.display = 'none'; alert("Database Error: " + err.message); });
+        }).catch(err => { loader.style.display = 'none'; alert("Database Error: " + err.message); });
+    }
+
+    window.processLogin = function() {
+        const phone = document.getElementById('log-phone').value.trim(); const pwd = document.getElementById('log-password').value;
+        const code = document.getElementById('log-code').value; const cap = parseInt(document.getElementById('log-captcha-input').value);
+
+        if(!/^\d{10}$/.test(phone)) return alert("Please enter your 10-digit phone number."); if(!pwd) return alert("Please enter your password.");
+        if(cap !== currentCaptchaAnswer) { alert("Incorrect verification answer!"); generateCaptcha('log'); return; }
+
+        loader.style.display = 'flex';
+        get(ref(db, 'auth_users/' + phone)).then(snap => {
+            loader.style.display = 'none';
+            if(snap.exists()) {
+                const data = snap.val();
+                if(data.country_code !== code) { alert("select correct country code"); generateCaptcha('log'); return; }
+                if(data.password === btoa(pwd)) {
+                    if(data.blocked) { alert("Account Denied: Your account has been blocked for violating our policy (Multiple accounts registered on a single IP address)."); generateCaptcha('log'); return; }
+                    USER_ID = "user_" + phone; startGame(); 
+                } else { alert("Incorrect Password!"); generateCaptcha('log'); }
+            } else { alert("Account not found. Please register first."); generateCaptcha('log'); }
+        }).catch(err => { loader.style.display = 'none'; alert("Database Error: " + err.message); });
+    }
+
+    window.processLogout = function(manual = false) {
+        if(gameInterval) clearInterval(gameInterval); if(autoLogoutTimer) clearTimeout(autoLogoutTimer);
+        Object.keys(window.active3DAnimations || {}).forEach(k => { if(k !== 'header') cancelAnimationFrame(window.active3DAnimations[k]); });
+        USER_ID = null; userData = { eggs: 0, usdt: 0, diamonds: 0, floors: null, soundEnabled: true, invites: 0, inviteEarnings: 0 };
+        document.getElementById('log-phone').value = ''; document.getElementById('log-password').value = '';
+        if(!manual) alert("Security Notice: You have been automatically logged out after 1 hour of activity. Please log in again.");
+        navToAuth('screen-login');
+    }
+
+    function startGame() {
+        navTo('screen-home'); initUser();
+        if(autoLogoutTimer) clearTimeout(autoLogoutTimer); autoLogoutTimer = setTimeout(() => { processLogout(false); }, 3600000); 
+
+        if(gameInterval) clearInterval(gameInterval);
+        gameInterval = setInterval(() => {
+            if(!userData || !userData.floors) return; let now = Date.now();
+            FLOORS.forEach(f => {
+                if(userData.floors[f.id] && userData.floors[f.id].adopted) {
+                    let elapsed = now - userData.floors[f.id].lastClaim;
+                    let available = Math.floor(elapsed / (f.time_per_egg * 1000));
+                    if(available > f.capacity) available = f.capacity; if(available < 0) available = 0;
+                    if(currentEggCounts[f.id] !== available) { currentEggCounts[f.id] = available; renderDiscreteEggs(f.id, available); }
+                }
+            });
+        }, 1000);
+    }
+
+    function initUser() {
+        loader.style.display = 'flex';
+        onValue(ref(db, 'users/' + USER_ID), (snapshot) => {
+            if (snapshot.exists()) {
+                let data = snapshot.val(); userData = { ...userData, ...data };
+                if(userData.soundEnabled !== undefined) document.getElementById('sound-toggle').checked = userData.soundEnabled;
+                if(!userData.floors) initDefaultFloors(); else renderFloors();
+            } else { initDefaultFloors(); }
+            document.getElementById('ui-eggs').innerText = Math.floor(userData.eggs);
+            document.getElementById('ui-usdt').innerText = userData.usdt.toFixed(2);
+            document.getElementById('ui-diamonds').innerText = Number(userData.diamonds || 0).toFixed(2).replace(/\.00$/, '');
+            loader.style.display = 'none';
+        });
+    }
+
+    function initDefaultFloors() {
+        userData.floors = { f1: { adopted: true, lastClaim: Date.now() }, f2: { adopted: false, lastClaim: 0 }, f3: { adopted: false, lastClaim: 0 }, f4: { adopted: false, lastClaim: 0 }, f5: { adopted: false, lastClaim: 0 } };
+        set(ref(db, 'users/' + USER_ID), userData); renderFloors();
+    }
+
+    function renderFloors() {
+        const container = document.getElementById('floors-container');
+        Object.keys(window.active3DAnimations || {}).forEach(k => { if(k !== 'header') cancelAnimationFrame(window.active3DAnimations[k]); });
+        container.innerHTML = ''; 
+        
+        FLOORS.forEach(f => {
+            const isAdopted = userData.floors[f.id] && userData.floors[f.id].adopted;
+            let html = `<div class="floor-box"><div class="floor-divider"><span>${f.name}</span><span>Rate: ${f.rate_desc}</span></div>`;
+            if(isAdopted) { 
+                html += `
+                    <div class="cloud-element c-1">☁️</div>
+                    <div class="cloud-element c-2">☁️</div>
+                    <div class="cloud-element c-3">☁️</div>
+                    <div id="floor-3d-${f.id}" class="floor-3d-canvas"></div>
+                    <div class="eggs-container" id="discrete-eggs-${f.id}"></div>
+                `; 
+            } else { 
+                html += `<div class="locked-overlay"><span style="font-size:35px; margin-bottom:5px; filter: drop-shadow(0 2px 2px #000);">🔒</span><div class="adopt-btn" onclick="adoptFloor('${f.id}')">Adopt for $${f.cost} USDT</div></div>`; 
+            }
+            html += `</div>`; container.innerHTML += html;
+        });
+        FLOORS.forEach(f => { if(userData.floors[f.id] && userData.floors[f.id].adopted) { initFloor3D(f.id); } });
+    }
+
+    // Using beautiful CSS blue eggs seamlessly hovering directly over the beautiful 2D grass floor!
+    function renderDiscreteEggs(fId, count) {
+        let container = document.getElementById(`discrete-eggs-${fId}`); if(!container) return; let html = '';
+        for(let i=0; i<count; i++) html += `<div class="single-floor-egg" onclick="collectSingleEgg('${fId}')"></div>`;
+        container.innerHTML = html;
+    }
+
+    window.adoptFloor = async function(fId) {
+        let fDef = FLOORS.find(x => x.id === fId);
+        if(userData.usdt >= fDef.cost) {
+            loader.style.display = 'flex';
+            userData.usdt -= fDef.cost; userData.floors[fId].adopted = true; userData.floors[fId].lastClaim = Date.now();
+            let updates = {}; updates[`users/${USER_ID}/usdt`] = userData.usdt; updates[`users/${USER_ID}/floors/${fId}`] = userData.floors[fId];
+            try {
+                if(fDef.cost > 0) {
+                    let phone = USER_ID.replace('user_', ''); let authSnap = await get(ref(db, 'auth_users/' + phone));
+                    if(authSnap.exists()) {
+                        let authData = authSnap.val();
+                        if(authData.invited_by) {
+                            let inviterId = "user_" + authData.invited_by; let inviterSnap = await get(ref(db, 'users/' + inviterId));
+                            let earnedDiamonds = fDef.cost * 0.15;
+                            updates[`users/${inviterId}/diamonds`] = inviterSnap.exists() ? (inviterSnap.val().diamonds || 0) + earnedDiamonds : earnedDiamonds;
+                        }
+                    }
+                }
+                await update(ref(db), updates); loader.style.display = 'none'; alert(`Adopted ${fDef.name}!`);
+            } catch(e) { loader.style.display = 'none'; alert("Error: " + e.message); }
+        } else alert(`Insufficient Base USDT! Needs $${fDef.cost}.`);
+    }
+
+    window.exchangeDiamonds = function() {
+        let amount = parseFloat(document.getElementById('exchange-diamond-input').value);
+        if(isNaN(amount) || amount <= 0) return alert("Enter a valid amount of diamonds."); if(userData.diamonds < amount) return alert("Insufficient Diamonds!");
+        loader.style.display = 'flex'; let eggsGained = amount * 2;
+        update(ref(db, 'users/' + USER_ID), { diamonds: userData.diamonds - amount, eggs: userData.eggs + eggsGained }).then(() => {
+            loader.style.display = 'none'; alert(`Successfully exchanged ${amount} Diamonds for ${eggsGained} Blue Eggs!`); document.getElementById('exchange-diamond-input').value = '';
+        }).catch(err => { loader.style.display = 'none'; alert("Error: " + err.message); });
+    }
+
+    window.collectSingleEgg = function(fId) {
+        if(!userData.floors[fId].adopted) return;
+        let fDef = FLOORS.find(x => x.id === fId); let now = Date.now();
+        let maxAllowedElapsed = fDef.capacity * fDef.time_per_egg * 1000; let actualElapsed = now - userData.floors[fId].lastClaim;
+
+        if(actualElapsed < fDef.time_per_egg * 1000) return; 
+        if(actualElapsed > maxAllowedElapsed) userData.floors[fId].lastClaim = now - maxAllowedElapsed;
+        
+        // Single One-By-One Collection Logic
+        userData.floors[fId].lastClaim += (fDef.time_per_egg * 1000); 
+        userData.eggs += 1;
+
+        update(ref(db, 'users/' + USER_ID), { eggs: userData.eggs, [`floors/${fId}/lastClaim`]: userData.floors[fId].lastClaim });
+        playEggSound(); document.getElementById('ui-eggs').innerText = Math.floor(userData.eggs);
+        if(currentEggCounts[fId] > 0) { currentEggCounts[fId]--; renderDiscreteEggs(fId, currentEggCounts[fId]); }
+    }
+
+    window.playEggSound = function() {
+        if(!userData.soundEnabled) return;
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator(); const gain = ctx.createGain();
+            osc.connect(gain); gain.connect(ctx.destination);
+            osc.type = 'sine'; osc.frequency.setValueAtTime(800, ctx.currentTime); osc.frequency.exponentialRampToValueAtTime(300, ctx.currentTime + 0.1);
+            gain.gain.setValueAtTime(1, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+            osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.1);
+        } catch(e) { console.log("Audio not supported"); }
+    }
+
+    window.toggleSound = function() { userData.soundEnabled = document.getElementById('sound-toggle').checked; if(USER_ID) update(ref(db, 'users/' + USER_ID), { soundEnabled: userData.soundEnabled }); }
+
+    window.loadFriends = function() {
+        document.getElementById('ui-invites').innerText = userData.invites || 0; document.getElementById('ui-invite-earnings').innerText = (userData.inviteEarnings || 0).toFixed(2) + " ₮";
+    }
+
+    window.loadRanking = function() {
+        const ul = document.getElementById('ranking-ul'); ul.innerHTML = "<p style='text-align:center;'>Loading...</p>";
+        get(ref(db, 'users')).then(snap => {
+            ul.innerHTML = ""; if(!snap.exists()) return;
+            let usersArr = []; snap.forEach(child => { usersArr.push({ id: child.key, eggs: child.val().eggs || 0 }); });
+            usersArr.sort((a,b) => b.eggs - a.eggs); let top10 = usersArr.slice(0, 10);
+            top10.forEach((u, index) => {
+                let rankBadge = index < 3 ? `<span class="rank-crown">👑</span>` : `<span class="rank-number">${index+1}</span>`;
+                let displayId = u.id.replace('user_', ''); if(displayId.length > 6) displayId = displayId.substring(0,4) + "***" + displayId.substring(displayId.length-2);
+                ul.innerHTML += `<li class="data-item">${rankBadge}<div class="hi-info"><span class="hi-title">Farmer: ${displayId}</span></div><div class="hi-status" style="background:#e3f2fd; color:#1e3c72;">${Math.floor(u.eggs)} Eggs</div></li>`;
+            });
+        });
+    }
+
+    window.initOasis = function() {
+        if(!USER_ID) return;
+        const dateStr = new Date().toDateString(); const oasisRef = ref(db, 'oasis');
+        get(oasisRef).then(snap => {
+            let data = snap.val();
+            if(!data || data.date !== dateStr) { let newEggs = {}; for(let i=1; i<=50; i++) newEggs['egg_'+i] = true; set(oasisRef, { date: dateStr, eggs: newEggs }); }
+        });
+        onValue(ref(db, 'oasis/eggs'), (snap) => { if(document.getElementById('screen-oasis').classList.contains('active')) renderOasisGrid(snap.val()); });
+    }
+
+    function renderOasisGrid(eggsData) {
+        if(!eggsData) return; const grid = document.getElementById('oasis-grid'); grid.innerHTML = ''; let remains = 0;
+        for(let i=1; i<=50; i++) {
+            let isAvailable = eggsData['egg_'+i];
+            if(isAvailable) { remains++; grid.innerHTML += `<div class="oasis-egg" onclick="claimOasisEgg('egg_${i}')"><div class="blue-egg-3d" style="font-size: 30px;"></div></div>`; } 
+            else { grid.innerHTML += `<div class="oasis-broken">💥</div>`; }
+        }
+        document.getElementById('oasis-remains').innerText = remains;
+    }
+
+    window.claimOasisEgg = function(eggId) {
+        let isPro = false;
+        if(userData.floors) { if(userData.floors.f2.adopted || userData.floors.f3.adopted || userData.floors.f4.adopted || userData.floors.f5.adopted) isPro = true; }
+        if(!isPro) return alert("Oasis is for Pro Users only! Adopt Floor 2 or above to claim global eggs.");
+        get(ref(db, `oasis/eggs/${eggId}`)).then(snap => {
+            if(snap.val() === true) {
+                update(ref(db, 'oasis/eggs'), { [eggId]: false }); userData.eggs += 1; update(ref(db, `users/${USER_ID}`), { eggs: userData.eggs }); playEggSound();
+            } else { alert("Too slow! Someone else already claimed this beautiful egg."); }
+        });
+    }
+
+    window.calcExchange = function() { let eggs = document.getElementById('wd-eggs').value; document.getElementById('wd-usdt').value = isNaN(eggs*0.01) ? "0.00" : (eggs*0.01).toFixed(2); }
+
+    window.submitWithdraw = function() {
+        let eggs = parseFloat(document.getElementById('wd-eggs').value); let address = document.getElementById('wd-address').value; let usdtAmt = eggs * 0.01;
+        if(!eggs || eggs <= 0) return alert("Enter valid egg amount."); if(usdtAmt < 2) return alert("Minimum withdrawal $2.");
+        if(userData.eggs < eggs) return alert("Insufficient eggs."); if(address.trim() === "") return alert("Enter wallet address.");
+        loader.style.display = 'flex'; update(ref(db, 'users/' + USER_ID), { eggs: userData.eggs - eggs });
+        push(ref(db, 'withdrawals/' + USER_ID), { amount_usdt: usdtAmt.toFixed(2), eggs_used: eggs, network: document.getElementById('wd-network').value, address: address, status: "Pending", date: new Date().toLocaleString() }).then(() => {
+            loader.style.display = 'none'; alert("Withdrawal submitted!"); navTo('screen-home');
+        });
+    }
+
+    const DEPOSIT_ADDRESSES = { "USDT TRC20": "TKEmWeig1jtWLgPZp4pX4PHAsPsrFNdqf2", "USDT BEP20": "0xeb0ee64208106984101b1f127cf221358771dbfa" };
+    window.updateDepositAddress = function() { document.getElementById('dep-address-txt').innerText = DEPOSIT_ADDRESSES[document.getElementById('dep-network').value]; }
+    window.copyAddress = function() { navigator.clipboard.writeText(document.getElementById('dep-address-txt').innerText); alert("Address copied!"); }
+
+    window.submitDeposit = function() {
+        let amt = parseFloat(document.getElementById('dep-amount').value); let proof = document.getElementById('dep-proof').files[0];
+        if(!amt || amt < 1) return alert("Minimum deposit $1."); if(!proof) return alert("Upload proof.");
+        loader.style.display = 'flex';
+        push(ref(db, 'deposits/' + USER_ID), { amount_usdt: amt.toFixed(2), network: document.getElementById('dep-network').value, proof_file: proof.name, status: "Review", date: new Date().toLocaleString() }).then(() => {
+            loader.style.display = 'none'; alert("Deposit submitted!"); navTo('screen-home');
+        });
+    }
+
+    window.loadHistory = function(type) {
+        if(!USER_ID) return; const ul = document.getElementById('history-ul'); ul.innerHTML = "<p style='text-align:center;'>Loading...</p>";
+        document.getElementById('history-title').innerText = type === 'withdraw' ? 'Withdrawal History' : 'Deposit History';
+        get(ref(db, (type === 'withdraw' ? 'withdrawals/' : 'deposits/') + USER_ID)).then((snap) => {
+            ul.innerHTML = "";
+            if (snap.exists()) {
+                let data = snap.val(); Object.keys(data).reverse().forEach(key => {
+                    let item = data[key]; let icon = type === 'withdraw' ? '📤' : '📥';
+                    ul.innerHTML += `<li class="data-item"><div class="hi-info"><span class="hi-title">${icon} ${item.amount_usdt} USDT</span><span class="hi-date">${item.date} • ${item.network}</span></div><div class="hi-status status-${item.status}">${item.status}</div></li>`;
+                });
+            } else { ul.innerHTML = "<p style='text-align:center; color:#888; padding:20px;'>No history found.</p>"; }
+        });
+    }
+</script>
+</body>
+</html>
