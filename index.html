@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -29,7 +30,9 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            min-height: 100dvh; /* Mobile viewport fix */
             margin: 0;
+            overscroll-behavior: none; /* Prevents whole page from bouncing/moving */
         }
 
         /* Mobile Screen Container */
@@ -37,6 +40,7 @@
             width: 100%;
             max-width: 400px;
             height: 100vh;
+            height: 100dvh; /* Mobile viewport fix */
             max-height: 850px;
             background-color: #fff;
             position: relative;
@@ -149,9 +153,9 @@
         .pill .add-btn { position: absolute; right: -2px; width: 26px; height: 26px; background: #fff; border-radius: 50%; display: flex; justify-content: center; align-items: center; border: 2px solid #ccc; color: #555; font-size: 18px; font-weight: bold; }
         .tag { position: absolute; bottom: -12px; background: #222; color: #fff; font-size: 9px; padding: 3px 8px; border-radius: 10px; letter-spacing: 0.5px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
 
-        /* Floating Buttons */
-        .btn { position: absolute; display: flex; flex-direction: column; align-items: center; color: #fff; font-weight: 800; font-size: 12px; text-shadow: 1px 1px 3px rgba(0,0,0,0.9); z-index: 10; text-align: center; line-height: 1.2; cursor: pointer; transition: transform 0.1s; }
-        .btn:active { transform: scale(0.95); }
+        /* Floating Buttons - Made Stable */
+        .btn { position: absolute; display: flex; flex-direction: column; align-items: center; color: #fff; font-weight: 800; font-size: 12px; text-shadow: 1px 1px 3px rgba(0,0,0,0.9); z-index: 10; text-align: center; line-height: 1.2; cursor: pointer; transition: filter 0.1s; }
+        .btn:active { filter: brightness(0.8); } /* Removed scale transform to keep buttons completely stable */
         .btn .circle { width: 55px; height: 55px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 28px; border: 3px solid #fff; box-shadow: 0 4px 8px rgba(0,0,0,0.4); margin-bottom: 4px; }
         .btn-withdraw { top: 75px; left: 15px; }
         .btn-withdraw .circle { background: linear-gradient(135deg, #a25df5, #622ad3); }
@@ -213,7 +217,7 @@
             border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
             box-shadow: inset -2px -2px 6px rgba(0,0,0,0.4);
             cursor: pointer; 
-            transition: transform 0.1s, filter 0.2s; 
+            transition: filter 0.2s; 
             position: relative;
         }
         .single-floor-egg::after {
@@ -225,12 +229,12 @@
             z-index: -1;
             filter: blur(1.5px);
         }
-        .single-floor-egg:active { transform: scale(0.85); filter: brightness(1.2); }
+        .single-floor-egg:active { filter: brightness(1.2); }
 
         /* Locked Overlay */
         .locked-overlay { position: absolute; top: 25px; left: 0; width: 100%; height: calc(100% - 25px); background: rgba(0,0,0,0.6); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; pointer-events: auto; }
-        .adopt-btn { background: linear-gradient(135deg, #4ac6ed, #1b35a3); color: #fff; font-weight: 900; font-size: 15px; padding: 10px 25px; border-radius: 25px; border: 3px solid #fff; cursor: pointer; margin-top: 10px; box-shadow: 0 5px 10px rgba(0,0,0,0.5); transition: transform 0.1s; }
-        .adopt-btn:active { transform: scale(0.95); }
+        .adopt-btn { background: linear-gradient(135deg, #4ac6ed, #1b35a3); color: #fff; font-weight: 900; font-size: 15px; padding: 10px 25px; border-radius: 25px; border: 3px solid #fff; cursor: pointer; margin-top: 10px; box-shadow: 0 5px 10px rgba(0,0,0,0.5); transition: filter 0.1s; }
+        .adopt-btn:active { filter: brightness(0.8); }
 
         /* --- Bottom Navigation --- */
         .bottom-nav { background: linear-gradient(to bottom, #7ab929, #5a961b); height: 85px; display: flex; justify-content: space-around; align-items: center; border-top: 3px solid #222; position: relative; z-index: 20; }
@@ -267,8 +271,8 @@
         .address-box { display: flex; align-items: center; background: #eef2f5; padding: 10px; border-radius: 8px; border: 1px solid #ccc; margin-top: 5px;}
         .address-text { flex-grow: 1; font-family: monospace; font-size: 12px; word-break: break-all; color: #333;}
         .copy-btn { background: #4477ec; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: bold; margin-left: 10px;}
-        .submit-btn { width: 100%; padding: 15px; background: linear-gradient(135deg, #44dfb6, #14a47a); color: white; font-size: 18px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; margin-top: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
-        .submit-btn:active { transform: scale(0.98); }
+        .submit-btn { width: 100%; padding: 15px; background: linear-gradient(135deg, #44dfb6, #14a47a); color: white; font-size: 18px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; margin-top: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: filter 0.1s; }
+        .submit-btn:active { filter: brightness(0.8); }
         .info-box { background: rgba(255,255,255,0.9); border-left: 4px solid #4477ec; padding: 15px; border-radius: 5px; font-size: 14px; color: #333; margin-bottom: 20px; line-height: 1.5; font-weight: bold;}
 
         /* --- CUSTOM SEARCHABLE COUNTRY SELECTOR --- */
@@ -307,8 +311,8 @@
         /* Oasis Grid */
         .oasis-header { text-align: center; margin-bottom: 20px; font-weight: bold; color: #1b35a3; }
         .oasis-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; margin-top: 20px; }
-        .oasis-egg { display:flex; justify-content:center; align-items:center; cursor: pointer; transition: transform 0.1s;}
-        .oasis-egg:active { transform: scale(0.8); }
+        .oasis-egg { display:flex; justify-content:center; align-items:center; cursor: pointer; transition: filter 0.1s;}
+        .oasis-egg:active { filter: brightness(0.8); }
         .oasis-broken { font-size: 35px; text-align: center; opacity: 0.5; filter: grayscale(1); cursor: not-allowed; }
 
         .loading-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.8); z-index:1000; display:none; justify-content:center; align-items:center; font-weight:bold; font-size: 18px; color:#4477ec;}
@@ -1334,7 +1338,11 @@
     
     window.copyReferralLink = function() {
         if (!USER_ID) return alert("Please log in to get your referral link.");
-        const refLink = `https://eggtycoon.app/?ref=${USER_ID.replace('user_', '')}`;
+        
+        // Dynamically get the current domain and path
+        const baseUrl = window.location.origin + window.location.pathname;
+        const refLink = `${baseUrl}?ref=${USER_ID.replace('user_', '')}`;
+        
         navigator.clipboard.writeText(refLink).then(() => {
             alert(`Your Referral Link:\n${refLink}\n\n(Link copied!)`);
         }, () => {
