@@ -316,6 +316,31 @@
         .oasis-broken { font-size: 35px; text-align: center; opacity: 0.5; filter: grayscale(1); cursor: not-allowed; }
 
         .loading-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.8); z-index:1000; display:none; justify-content:center; align-items:center; font-weight:bold; font-size: 18px; color:#4477ec;}
+
+        /* --- Floating Support Button --- */
+        .floating-support {
+            position: absolute;
+            bottom: 100px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: transparent;
+            border: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            cursor: pointer;
+            touch-action: none;
+            transition: transform 0.1s;
+        }
+        .floating-support:active { transform: scale(0.95); }
+        .floating-support img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4));
+        }
     </style>
 </head>
 <body>
@@ -554,6 +579,11 @@
             <div class="nav-item" onclick="navTo('screen-settings');">
                 <div class="nav-icon" style="background: linear-gradient(135deg, #888, #444);">🛠️</div>Settings
             </div>
+        </div>
+
+        <!-- Movable Floating Support Logo -->
+        <div id="floating-support" class="floating-support">
+            <img src="https://iili.io/qwvWVIa.png" alt="Contact Support">
         </div>
     </div>
 
@@ -1256,6 +1286,71 @@
     }
 
     window.addEventListener('load', initHeader3DHen);
+</script>
+
+<!-- Drag floating support button script -->
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const floatBtn = document.getElementById('floating-support');
+        const appContainer = document.querySelector('.app');
+        let isDragging = false;
+        let hasDragged = false;
+        let offsetX, offsetY;
+
+        const startDrag = (e) => {
+            isDragging = true;
+            hasDragged = false;
+            const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+            const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+            const rect = floatBtn.getBoundingClientRect();
+            offsetX = clientX - rect.left;
+            offsetY = clientY - rect.top;
+        };
+
+        const drag = (e) => {
+            if (!isDragging) return;
+            hasDragged = true;
+            const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+            const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+            
+            const appRect = appContainer.getBoundingClientRect();
+            
+            let x = clientX - appRect.left - offsetX;
+            let y = clientY - appRect.top - offsetY;
+
+            // Optional bounds clamping to keep inside app window
+            x = Math.max(0, Math.min(x, appRect.width - floatBtn.offsetWidth));
+            y = Math.max(0, Math.min(y, appRect.height - floatBtn.offsetHeight));
+
+            floatBtn.style.left = `${x}px`;
+            floatBtn.style.top = `${y}px`;
+            floatBtn.style.right = 'auto';
+            floatBtn.style.bottom = 'auto';
+            
+            if (e.cancelable) e.preventDefault();
+        };
+
+        const endDrag = () => {
+            setTimeout(() => { isDragging = false; }, 0);
+        };
+
+        floatBtn.addEventListener('mousedown', startDrag);
+        window.addEventListener('mousemove', drag, { passive: false });
+        window.addEventListener('mouseup', endDrag);
+
+        floatBtn.addEventListener('touchstart', startDrag, { passive: false });
+        window.addEventListener('touchmove', drag, { passive: false });
+        window.addEventListener('touchend', endDrag);
+
+        floatBtn.addEventListener('click', (e) => {
+            if (hasDragged) {
+                e.preventDefault();
+                hasDragged = false; // Reset flag
+                return;
+            }
+            window.open('https://chat.whatsapp.com/KqpU93bIUSjIe9gc37Tgpa', '_blank');
+        });
+    });
 </script>
 
 <!-- Firebase SDKs & Game Logic -->
