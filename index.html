@@ -254,7 +254,7 @@
         .auth-title { text-align: center; color: #1b35a3; font-weight: 900; font-size: 24px; margin-bottom: 20px; }
         
         .phone-input-group { display: flex; gap: 10px; }
-        .phone-input-group select { width: 40%; font-size: 14px;}
+        .phone-input-group .input-field { flex-grow: 1; }
         .captcha-box { display: flex; gap: 10px; align-items: center; }
         .captcha-text { background: #eef2f5; padding: 12px; border-radius: 8px; font-weight: bold; color: #d84315; font-size: 18px; letter-spacing: 2px; text-align: center; border: 1px dashed #ccc; min-width: 100px;}
         
@@ -270,6 +270,17 @@
         .submit-btn { width: 100%; padding: 15px; background: linear-gradient(135deg, #44dfb6, #14a47a); color: white; font-size: 18px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; margin-top: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
         .submit-btn:active { transform: scale(0.98); }
         .info-box { background: rgba(255,255,255,0.9); border-left: 4px solid #4477ec; padding: 15px; border-radius: 5px; font-size: 14px; color: #333; margin-bottom: 20px; line-height: 1.5; font-weight: bold;}
+
+        /* --- CUSTOM SEARCHABLE COUNTRY SELECTOR --- */
+        .custom-select-wrapper { position: relative; width: 40%; min-width: 120px; }
+        .custom-select-trigger { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; background: #fff; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .custom-select-trigger::after { content: '▼'; font-size: 10px; }
+        .custom-select-options { position: absolute; top: 105%; left: 0; width: 250%; max-width: 320px; background: #fff; border: 1px solid #ccc; border-radius: 8px; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: none; }
+        .custom-select-options.open { display: block; }
+        .custom-select-search { width: calc(100% - 20px); margin: 10px; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; }
+        .custom-select-options ul { list-style: none; padding: 0 0 10px 0; margin: 0; max-height: 200px; overflow-y: auto; }
+        .custom-select-options ul li { padding: 10px 15px; cursor: pointer; font-size: 14px; }
+        .custom-select-options ul li:hover { background-color: #f0f0f0; }
 
         /* Lists */
         .data-list { list-style: none; padding: 0; }
@@ -300,7 +311,7 @@
         .oasis-egg:active { transform: scale(0.8); }
         .oasis-broken { font-size: 35px; text-align: center; opacity: 0.5; filter: grayscale(1); cursor: not-allowed; }
 
-        .loading-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.8); z-index:100; display:none; justify-content:center; align-items:center; font-weight:bold; font-size: 18px; color:#4477ec;}
+        .loading-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.8); z-index:1000; display:none; justify-content:center; align-items:center; font-weight:bold; font-size: 18px; color:#4477ec;}
     </style>
 </head>
 <body>
@@ -330,8 +341,8 @@
                 <div class="form-group">
                     <label>Phone Number</label>
                     <div class="phone-input-group">
-                        <select id="reg-code" class="input-field country-select"></select>
-                        <input type="tel" id="reg-phone" class="input-field" placeholder="10-digits" maxlength="10">
+                        <div id="reg-code" class="country-select-custom"></div>
+                        <input type="tel" id="reg-phone" class="input-field" placeholder="Phone number" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                     </div>
                 </div>
 
@@ -383,8 +394,8 @@
                 <div class="form-group">
                     <label>Phone Number</label>
                     <div class="phone-input-group">
-                        <select id="log-code" class="input-field country-select"></select>
-                        <input type="tel" id="log-phone" class="input-field" placeholder="10-digit phone number" maxlength="10">
+                        <div id="log-code" class="country-select-custom"></div>
+                        <input type="tel" id="log-phone" class="input-field" placeholder="Phone number" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                     </div>
                 </div>
                 
@@ -434,8 +445,8 @@
                 <div class="form-group">
                     <label>Registered Phone</label>
                     <div class="phone-input-group">
-                        <select id="fg-code" class="input-field country-select"></select>
-                        <input type="tel" id="fg-phone" class="input-field" placeholder="10-digits" maxlength="10">
+                        <div id="fg-code" class="country-select-custom"></div>
+                        <input type="tel" id="fg-phone" class="input-field" placeholder="Phone number" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                     </div>
                 </div>
 
@@ -579,7 +590,7 @@
             <div style="font-size: 80px; margin: 10px 0;">💎</div>
             <h2 style="color: #1b35a3; margin-bottom: 10px; text-shadow: 1px 1px 2px rgba(255,255,255,0.8);">Diamond Rewards</h2>
             <div class="info-box" style="text-align: left;">Earn Diamonds by inviting new members! <br><br>When your referred member adopts any <b>Pro Plan</b>, you will automatically receive a <b>15% commission</b> in Diamonds.</div>
-            <button class="submit-btn" style="background: linear-gradient(135deg, #446bf2, #1b35a3);" onclick="alert('Your Referral Link: https://eggtycoon.app/?ref='+USER_ID.replace('user_','')+'\n\n(Link copied!)')">Copy Referral Link</button>
+            <button class="submit-btn" style="background: linear-gradient(135deg, #446bf2, #1b35a3);" onclick="copyReferralLink()">Copy Referral Link</button>
             
             <div class="info-box" style="margin-top:20px; text-align: left; background:#fff8e1; border-left:4px solid #f5a623;">
                 <b style="color:#d84315;">Exchange Diamonds for Blue Eggs</b><br>
@@ -676,7 +687,6 @@
                 const gain = ctx.createGain();
                 
                 osc.type = 'triangle';
-                // Drop pitch rapidly simulating chicken cluck
                 osc.frequency.setValueAtTime(400, ctx.currentTime + timeOffset);
                 osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + timeOffset + 0.1);
                 
@@ -691,7 +701,6 @@
                 osc.stop(ctx.currentTime + timeOffset + 0.15);
             }
             
-            // Play one cluck, occasionally followed by a second one
             makeCluck(0);
             if(Math.random() > 0.5) makeCluck(0.15); 
             
@@ -953,7 +962,6 @@
         ctx.beginPath(); ctx.moveTo(256, 135); ctx.lineTo(256, 185); ctx.stroke();
         ctx.beginPath(); ctx.moveTo(231, 160); ctx.lineTo(281, 160); ctx.stroke();
 
-        // Create texture and a material that does NOT react to lighting, keeping it beautifully flat 2D
         const tex = new THREE.CanvasTexture(canvas);
         const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, side: THREE.DoubleSide });
         const mesh = new THREE.Mesh(new THREE.PlaneGeometry(3.5, 3.5), mat);
@@ -1015,7 +1023,7 @@
         animate();
     }
 
-    // --- 2. Adopted Floor 3D Initializer (Beautiful full surface Grass & 2D House) ---
+    // --- 2. Adopted Floor 3D Initializer ---
     function initFloor3D(fId) {
         const container = document.getElementById('floor-3d-' + fId);
         if(!container) return;
@@ -1038,17 +1046,14 @@
         const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
         dirLight.position.set(5, 10, 5); dirLight.castShadow = true; scene.add(dirLight);
 
-        // BEAUTIFUL 2D REAL-TYPE GREENERY & FLOWERS TEXTURE
         const canvas2d = document.createElement('canvas');
         canvas2d.width = 1024;
         canvas2d.height = 1024;
         const ctx2d = canvas2d.getContext('2d');
         
-        // Base soil/dark green
         ctx2d.fillStyle = '#1e5622';
         ctx2d.fillRect(0, 0, 1024, 1024);
         
-        // Draw thousands of 2D grass strokes for a "real type" look
         for(let i=0; i<40000; i++) {
             let x = Math.random() * 1024;
             let y = Math.random() * 1024;
@@ -1058,7 +1063,6 @@
             ctx2d.fillRect(x, y, 2, h);
         }
         
-        // Draw beautiful 2D flowers over the grass
         const flowerColors = ['#ffffff', '#ff99cc', '#ffcc00', '#cc99ff', '#66ccff'];
         for(let i=0; i<300; i++) {
             let x = Math.random() * 1024;
@@ -1068,14 +1072,12 @@
             ctx2d.globalAlpha = 1.0;
             ctx2d.fillStyle = fColor;
             
-            // Petals
             for(let p=0; p<5; p++) {
                 let angle = (p / 5) * Math.PI * 2;
                 ctx2d.beginPath();
                 ctx2d.arc(x + Math.cos(angle)*6, y + Math.sin(angle)*6, 5, 0, Math.PI*2);
                 ctx2d.fill();
             }
-            // Center
             ctx2d.fillStyle = '#ffaa00';
             ctx2d.beginPath();
             ctx2d.arc(x, y, 4, 0, Math.PI*2);
@@ -1087,7 +1089,6 @@
         floorTexture.wrapT = THREE.RepeatWrapping;
         floorTexture.repeat.set(4, 2);
 
-        // Huge floor mesh covering the full horizon bottom surface
         const floorGeo = new THREE.PlaneGeometry(40, 20);
         const floorMat = new THREE.MeshStandardMaterial({ map: floorTexture, roughness: 1 });
         const floorMesh = new THREE.Mesh(floorGeo, floorMat);
@@ -1096,13 +1097,12 @@
         floorMesh.receiveShadow = true;
         scene.add(floorMesh);
 
-        // BEAUTIFUL WOOD FENCE MATERIAL & GENERATION
         const fCanvas = document.createElement('canvas');
         fCanvas.width = 256; fCanvas.height = 256;
         const fCtx = fCanvas.getContext('2d');
-        fCtx.fillStyle = '#5c3a21'; // Dark wood base
+        fCtx.fillStyle = '#5c3a21'; 
         fCtx.fillRect(0,0,256,256);
-        fCtx.fillStyle = '#8b5a2b'; // Lighter wood lines
+        fCtx.fillStyle = '#8b5a2b'; 
         for(let i=0; i<256; i+=12) {
             fCtx.globalAlpha = 0.6 + Math.random()*0.4;
             fCtx.fillRect(0, i, 256, 3 + Math.random()*3);
@@ -1113,99 +1113,86 @@
 
         const fenceGroup = new THREE.Group();
         const postGeo = new THREE.BoxGeometry(0.15, 0.6, 0.15);
-        const railGeoX = new THREE.BoxGeometry(8.2, 0.1, 0.05); // For front/back
-        const railGeoZ = new THREE.BoxGeometry(0.05, 0.1, 3.6); // For sides
+        const railGeoX = new THREE.BoxGeometry(8.2, 0.1, 0.05); 
+        const railGeoZ = new THREE.BoxGeometry(0.05, 0.1, 3.6); 
 
-        // Back Fence (Z = -1.8)
         const backRail1 = new THREE.Mesh(railGeoX, fMat); backRail1.position.set(0, 0.3, -1.8);
         const backRail2 = new THREE.Mesh(railGeoX, fMat); backRail2.position.set(0, 0.1, -1.8);
         backRail1.castShadow = true; backRail2.castShadow = true;
         fenceGroup.add(backRail1, backRail2);
 
-        // Front Fence (Z = 1.8)
         const frontRail1 = new THREE.Mesh(railGeoX, fMat); frontRail1.position.set(0, 0.3, 1.8);
         const frontRail2 = new THREE.Mesh(railGeoX, fMat); frontRail2.position.set(0, 0.1, 1.8);
         frontRail1.castShadow = true; frontRail2.castShadow = true;
         fenceGroup.add(frontRail1, frontRail2);
 
-        // Left Fence (X = -4.1)
         const leftRail1 = new THREE.Mesh(railGeoZ, fMat); leftRail1.position.set(-4.1, 0.3, 0);
         const leftRail2 = new THREE.Mesh(railGeoZ, fMat); leftRail2.position.set(-4.1, 0.1, 0);
         leftRail1.castShadow = true; leftRail2.castShadow = true;
         fenceGroup.add(leftRail1, leftRail2);
 
-        // Right Fence (X = 4.1)
         const rightRail1 = new THREE.Mesh(railGeoZ, fMat); rightRail1.position.set(4.1, 0.3, 0);
         const rightRail2 = new THREE.Mesh(railGeoZ, fMat); rightRail2.position.set(4.1, 0.1, 0);
         rightRail1.castShadow = true; rightRail2.castShadow = true;
         fenceGroup.add(rightRail1, rightRail2);
 
-        // Posts
         for(let x = -4.1; x <= 4.1; x += 2.05) {
             const pb = new THREE.Mesh(postGeo, fMat); pb.position.set(x, 0.05, -1.8); pb.castShadow = true; fenceGroup.add(pb);
             const pf = new THREE.Mesh(postGeo, fMat); pf.position.set(x, 0.05, 1.8); pf.castShadow = true; fenceGroup.add(pf);
         }
         for(let z = -1.8; z <= 1.8; z += 1.8) {
-            if(z > -1.7 && z < 1.7) { // middle posts
+            if(z > -1.7 && z < 1.7) { 
                 const pl = new THREE.Mesh(postGeo, fMat); pl.position.set(-4.1, 0.05, z); pl.castShadow = true; fenceGroup.add(pl);
                 const pr = new THREE.Mesh(postGeo, fMat); pr.position.set(4.1, 0.05, z); pr.castShadow = true; fenceGroup.add(pr);
             }
         }
         scene.add(fenceGroup);
 
-        // Add 2D Beautiful Hen House
         const house = create2DHenHouse(fId);
         house.position.set(0, 1.4, -1.5);
         scene.add(house);
 
-        // Add Smart 3D Hen
         const hen = create3DHenModel();
         hen.scale.set(0.45, 0.45, 0.45); 
         scene.add(hen);
 
         const clock = new THREE.Clock();
         
-        // Intelligent State Machine Variables
-        let state = 'WANDERING'; // States: WANDERING, EATING, GOING_HOME, AT_HOME
+        let state = 'WANDERING'; 
         let stateTimer = Math.random() * 3 + 2; 
-        // Ensure within boundary: X is [-3.5, 3.5], Z is [-0.2, 1.3]
         let targetPos = new THREE.Vector3((Math.random()-0.5)*7, 0, Math.random()*1.5 - 0.2);
-        let homePos = new THREE.Vector3(0, 0, -1.0); // Doorway position mapped nicely in front of the 2D house
+        let homePos = new THREE.Vector3(0, 0, -1.0); 
         
         let walkTime = Math.random() * 10;
-        let soundTimer = Math.random() * 5 + 3; // Timer for Hen Voice
+        let soundTimer = Math.random() * 5 + 3; 
 
         function animate() {
             window.active3DAnimations[fId] = requestAnimationFrame(animate);
             const delta = clock.getDelta();
             const elapsed = clock.getElapsedTime();
             
-            // Generate occasional Hen Voice (clucks)
             soundTimer -= delta;
             if (soundTimer <= 0 && state !== 'AT_HOME') {
                 if(window.playHenVoice) window.playHenVoice();
-                soundTimer = Math.random() * 8 + 4; // Reset sound timer between 4 to 12s
+                soundTimer = Math.random() * 8 + 4; 
             }
 
             if (state === 'WANDERING' || state === 'GOING_HOME') {
-                // Move towards target
                 let dir = new THREE.Vector3().subVectors(targetPos, hen.position);
                 dir.y = 0;
                 let dist = dir.length();
                 
                 if (dist > 0.05) {
                     dir.normalize();
-                    let speed = 0.6; // Slightly slower, smoother movement
+                    let speed = 0.6; 
                     hen.position.addScaledVector(dir, delta * speed);
                     
-                    // Smooth Rotation towards target
                     let targetAngle = Math.atan2(dir.x, dir.z);
                     let currentAngle = hen.rotation.y;
                     while(targetAngle - currentAngle > Math.PI) currentAngle += Math.PI * 2;
                     while(targetAngle - currentAngle < -Math.PI) currentAngle -= Math.PI * 2;
-                    hen.rotation.y = THREE.MathUtils.lerp(currentAngle, targetAngle, 4 * delta); // Smoother turning
+                    hen.rotation.y = THREE.MathUtils.lerp(currentAngle, targetAngle, 4 * delta); 
                     
-                    // Walk Cycle Animations
                     walkTime += delta * 10;
                     hen.rotation.z = THREE.MathUtils.lerp(hen.rotation.z, 0, 10 * delta);
                     hen.position.y = (Math.abs(Math.sin(walkTime)) * 0.1);
@@ -1216,14 +1203,13 @@
                     hen.userData.leftWingGroup.rotation.z = -(Math.abs(Math.sin(walkTime)) * 0.3 + 0.1);
                     hen.userData.tailGroup.rotation.y = Math.sin(walkTime) * 0.2;
                 } else {
-                    // Reached target destination
                     if (state === 'WANDERING') {
                         state = 'EATING';
-                        stateTimer = 2 + Math.random() * 3; // Eat for 2 to 5 seconds
+                        stateTimer = 2 + Math.random() * 3; 
                     } else if (state === 'GOING_HOME') {
                         state = 'AT_HOME';
-                        stateTimer = 4 + Math.random() * 6; // Stay inside home for 4 to 10 seconds
-                        hen.visible = false; // Hen goes inside
+                        stateTimer = 4 + Math.random() * 6; 
+                        hen.visible = false; 
                     }
                 }
             } else if (state === 'EATING') {
@@ -1231,12 +1217,10 @@
                 let peckSpeed = elapsed * 15;
                 let peckPhase = Math.sin(peckSpeed);
 
-                // Eating Animation Mechanics
-                hen.rotation.z = THREE.MathUtils.lerp(hen.rotation.z, 0.4, 5 * delta); // Lean body forward
-                hen.position.y = THREE.MathUtils.lerp(hen.position.y, -0.15, 5 * delta); // Lower height
-                hen.userData.headGroup.rotation.x = peckPhase > 0 ? peckPhase * 0.8 : 0; // Pecking motion
+                hen.rotation.z = THREE.MathUtils.lerp(hen.rotation.z, 0.4, 5 * delta); 
+                hen.position.y = THREE.MathUtils.lerp(hen.position.y, -0.15, 5 * delta); 
+                hen.userData.headGroup.rotation.x = peckPhase > 0 ? peckPhase * 0.8 : 0; 
                 
-                // Keep limbs at rest while eating
                 hen.userData.rightLeg.rotation.x = THREE.MathUtils.lerp(hen.userData.rightLeg.rotation.x, 0, 10 * delta);
                 hen.userData.leftLeg.rotation.x = THREE.MathUtils.lerp(hen.userData.leftLeg.rotation.x, 0, 10 * delta);
                 hen.userData.rightWingGroup.rotation.z = THREE.MathUtils.lerp(hen.userData.rightWingGroup.rotation.z, 0.1, 10 * delta);
@@ -1244,10 +1228,10 @@
                 hen.userData.tailGroup.rotation.y = THREE.MathUtils.lerp(hen.userData.tailGroup.rotation.y, 0, 10 * delta);
 
                 if (stateTimer <= 0) {
-                    if (Math.random() < 0.3) { // 30% chance to go rest at home after eating
+                    if (Math.random() < 0.3) { 
                         state = 'GOING_HOME';
                         targetPos.copy(homePos);
-                    } else { // 70% chance to wander to a new spot
+                    } else { 
                         state = 'WANDERING';
                         targetPos.set((Math.random()-0.5)*7, 0, Math.random()*1.5 - 0.2);
                     }
@@ -1256,7 +1240,7 @@
                 stateTimer -= delta;
                 if (stateTimer <= 0) {
                     state = 'WANDERING';
-                    hen.visible = true; // Hen emerges from house
+                    hen.visible = true; 
                     hen.position.copy(homePos);
                     targetPos.set((Math.random()-0.5)*7, 0, Math.random()*1.5 - 0.2);
                 }
@@ -1267,7 +1251,6 @@
         animate();
     }
 
-    // Start Header Hen on load
     window.addEventListener('load', initHeader3DHen);
 </script>
 
@@ -1293,10 +1276,9 @@
     let generatedWhatsappOtp = null;
     let targetResetPhone = null;
     let currentEggCounts = {};
+    let oasisListenerAttached = false;
     const loader = document.getElementById('loader');
 
-    // EGG GENERATION PARAMETERS
-    // Eggs mathematically divided in a Day (86400s). e.g., 86400 / 5 eggs = 17280 seconds per egg.
     const FLOORS = [
         { id: 'f1', cost: 0,  capacity: 5,  time_per_egg: 17280, rate_desc: "5 Eggs / Day", name: "1st Floor (Free)" },
         { id: 'f2', cost: 5,  capacity: 15, time_per_egg: 5760,  rate_desc: "15 Eggs / Day", name: "2nd Floor" },
@@ -1306,19 +1288,13 @@
     ];
 
     document.addEventListener('DOMContentLoaded', () => {
+        initCustomSelects();
         const urlParams = new URLSearchParams(window.location.search);
         const refCode = urlParams.get('ref');
         if(refCode) {
             const inviteEl = document.getElementById('reg-invite');
             if(inviteEl) inviteEl.value = refCode;
         }
-    });
-
-    const countryCodes = [
-        "+1 (US/CA)", "+44 (UK)", "+91 (IN)", "+61 (AU)", "+971 (UAE)", "+93 (AF)", "+355 (AL)", "+213 (DZ)", "+376 (AD)", "+244 (AO)", "+54 (AR)", "+374 (AM)", "+43 (AT)", "+994 (AZ)", "+973 (BH)", "+880 (BD)", "+375 (BY)", "+32 (BE)", "+501 (BZ)", "+229 (BJ)", "+975 (BT)", "+591 (BO)", "+387 (BA)", "+267 (BW)", "+55 (BR)", "+359 (BG)", "+226 (BF)", "+257 (BI)", "+855 (KH)", "+237 (CM)", "+238 (CV)", "+236 (CF)", "+235 (TD)", "+56 (CL)", "+86 (CN)", "+57 (CO)", "+269 (KM)", "+242 (CG)", "+506 (CR)", "+385 (HR)", "+53 (CU)", "+357 (CY)", "+420 (CZ)", "+45 (DK)", "+253 (DJ)", "+593 (EC)", "+20 (EG)", "+503 (SV)", "+240 (GQ)", "+291 (ER)", "+372 (EE)", "+251 (ET)", "+679 (FJ)", "+358 (FI)", "+33 (FR)", "+241 (GA)", "+220 (GM)", "+995 (GE)", "+49 (DE)", "+233 (GH)", "+30 (GR)", "+502 (GT)", "+224 (GN)", "+245 (GW)", "+592 (GY)", "+509 (HT)", "+504 (HN)", "+36 (HU)", "+354 (IS)", "+62 (ID)", "+98 (IR)", "+964 (IQ)", "+353 (IE)", "+972 (IL)", "+39 (IT)", "+225 (CI)", "+81 (JP)", "+962 (JO)", "+7 (KZ/RU)", "+254 (KE)", "+965 (KW)", "+996 (KG)", "+856 (LA)", "+371 (LV)", "+961 (LB)", "+266 (LS)", "+231 (LR)", "+218 (LY)", "+423 (LI)", "+370 (LT)", "+352 (LU)", "+389 (MK)", "+261 (MG)", "+265 (MW)", "+60 (MY)", "+960 (MV)", "+223 (ML)", "+356 (MT)", "+222 (MR)", "+230 (MU)", "+52 (MX)", "+373 (MD)", "+377 (MC)", "+976 (MN)", "+382 (ME)", "+212 (MA)", "+258 (MZ)", "+95 (MM)", "+264 (NA)", "+977 (NP)", "+31 (NL)", "+64 (NZ)", "+505 (NI)", "+227 (NE)", "+234 (NG)", "+47 (NO)", "+968 (OM)", "+92 (PK)", "+507 (PA)", "+675 (PG)", "+595 (PY)", "+51 (PE)", "+63 (PH)", "+48 (PL)", "+351 (PT)", "+974 (QA)", "+40 (RO)", "+250 (RW)", "+966 (SA)", "+221 (SN)", "+381 (RS)", "+248 (SC)", "+232 (SL)", "+65 (SG)", "+421 (SK)", "+386 (SI)", "+252 (SO)", "+27 (ZA)", "+82 (KR)", "+34 (ES)", "+94 (LK)", "+249 (SD)", "+597 (SR)", "+268 (SZ)", "+46 (SE)", "+41 (CH)", "+963 (SY)", "+886 (TW)", "+992 (TJ)", "+255 (TZ)", "+66 (TH)", "+228 (TG)", "+216 (TN)", "+90 (TR)", "+993 (TM)", "+256 (UG)", "+380 (UA)", "+598 (UY)", "+998 (UZ)", "+58 (VE)", "+84 (VN)", "+967 (YE)", "+260 (ZM)", "+263 (ZW)"
-    ];
-    document.querySelectorAll('.country-select').forEach(select => {
-        countryCodes.forEach(code => { select.innerHTML += `<option value="${code.split(' ')[0]}">${code}</option>`; });
     });
 
     window.navTo = function(screenId) {
@@ -1350,24 +1326,42 @@
         if(screenId === 'screen-login') {
             document.getElementById('fg-step2').style.display = 'none'; document.getElementById('fg-btn-send').style.display = 'block';
             document.getElementById('fg-btn-reset').style.display = 'none'; document.getElementById('fg-phone').removeAttribute('readonly');
-            document.getElementById('fg-code').removeAttribute('disabled');
+            // document.getElementById('fg-code').removeAttribute('disabled'); // Custom select doesn't use 'disabled'
         }
     }
 
     generateCaptcha('reg');
+    
+    window.copyReferralLink = function() {
+        if (!USER_ID) return alert("Please log in to get your referral link.");
+        const refLink = `https://eggtycoon.app/?ref=${USER_ID.replace('user_', '')}`;
+        navigator.clipboard.writeText(refLink).then(() => {
+            alert(`Your Referral Link:\n${refLink}\n\n(Link copied!)`);
+        }, () => {
+            alert('Failed to copy link.');
+        });
+    }
 
     window.sendWhatsappCode = function() {
-        const code = document.getElementById('fg-code').value; const phone = document.getElementById('fg-phone').value.trim();
-        if(!/^\d{10}$/.test(phone)) return alert("Please enter a valid 10-digit registered phone number.");
+        const codeEl = document.getElementById('fg-code');
+        const code = codeEl.dataset.value; 
+        const phone = document.getElementById('fg-phone').value.trim();
+        if(!phone) return alert("Please enter a valid registered phone number.");
         loader.style.display = 'flex';
-        const authRef = ref(db, 'auth_users/' + phone);
+        const authRef = ref(db, 'auth_users/' + code.replace('+','') + phone);
         get(authRef).then(snap => {
-            loader.style.display = 'none'; if(!snap.exists()) return alert("No account found for this phone number.");
-            generatedWhatsappOtp = Math.floor(100000 + Math.random() * 900000); targetResetPhone = phone;
+            loader.style.display = 'none'; 
+            if(!snap.exists()) {
+                return alert("No account found for this phone number.");
+            }
+            generatedWhatsappOtp = Math.floor(100000 + Math.random() * 900000); 
+            targetResetPhone = code.replace('+','') + phone;
             alert(`💬 WhatsApp Message sent to ${code} ${phone}:\n\n"Your Egg Tycoon password reset code is: ${generatedWhatsappOtp}\nPlease do not share this code with anyone."`);
-            document.getElementById('fg-step2').style.display = 'block'; document.getElementById('fg-btn-send').style.display = 'none';
-            document.getElementById('fg-btn-reset').style.display = 'block'; document.getElementById('fg-phone').setAttribute('readonly', true);
-            document.getElementById('fg-code').setAttribute('disabled', true);
+            document.getElementById('fg-step2').style.display = 'block'; 
+            document.getElementById('fg-btn-send').style.display = 'none';
+            document.getElementById('fg-btn-reset').style.display = 'block'; 
+            document.getElementById('fg-phone').setAttribute('readonly', true);
+            codeEl.style.pointerEvents = 'none';
         }).catch(err => { loader.style.display = 'none'; alert("Database Error: " + err.message); });
     }
 
@@ -1384,12 +1378,16 @@
     }
 
     window.processRegister = async function() {
-        const name = document.getElementById('reg-name').value.trim(); const code = document.getElementById('reg-code').value;
-        const phone = document.getElementById('reg-phone').value.trim(); const pwd = document.getElementById('reg-password').value;
-        const inviteCode = document.getElementById('reg-invite').value.trim(); const cap = parseInt(document.getElementById('reg-captcha-input').value);
+        const name = document.getElementById('reg-name').value.trim(); 
+        const code = document.getElementById('reg-code').dataset.value;
+        const phone = document.getElementById('reg-phone').value.trim(); 
+        const fullPhone = code.replace('+','') + phone;
+        const pwd = document.getElementById('reg-password').value;
+        const inviteCode = document.getElementById('reg-invite').value.trim(); 
+        const cap = parseInt(document.getElementById('reg-captcha-input').value);
 
         if(!name) return alert("Please enter your name.");
-        if(!/^\d{10}$/.test(phone)) return alert("Phone number must be exactly 10 digits.");
+        if(!phone) return alert("Phone number is required.");
         if(pwd.length < 6) return alert("Password must be at least 6 characters.");
         if(cap !== currentCaptchaAnswer) { alert("Incorrect verification answer!"); generateCaptcha('reg'); return; }
 
@@ -1398,14 +1396,14 @@
         const ipRef = ref(db, 'used_ips/' + sanitizedIP);
         get(ipRef).then(ipSnap => {
             let isBlocked = false; if(ipSnap.exists()) isBlocked = true; 
-            const authRef = ref(db, 'auth_users/' + phone);
+            const authRef = ref(db, 'auth_users/' + fullPhone);
             get(authRef).then(snap => {
                 if(snap.exists()) {
                     loader.style.display = 'none'; alert("This phone number is already registered. Please Login."); navToAuth('screen-login');
                 } else {
                     set(authRef, { name: name, country_code: code, password: btoa(pwd), invited_by: inviteCode || null, created_at: new Date().toLocaleString(), ip_address: userIP, blocked: isBlocked
                     }).then(() => {
-                        if(!isBlocked) set(ipRef, phone); 
+                        if(!isBlocked) set(ipRef, fullPhone); 
                         loader.style.display = 'none';
                         if(isBlocked) alert("Registration processed, but account has been BLOCKED due to multiple registrations on the same IP Address.");
                         else alert("Registration Successful! Please login.");
@@ -1417,21 +1415,25 @@
     }
 
     window.processLogin = function() {
-        const phone = document.getElementById('log-phone').value.trim(); const pwd = document.getElementById('log-password').value;
-        const code = document.getElementById('log-code').value; const cap = parseInt(document.getElementById('log-captcha-input').value);
+        const phone = document.getElementById('log-phone').value.trim(); 
+        const code = document.getElementById('log-code').dataset.value; 
+        const fullPhone = code.replace('+','') + phone;
+        const pwd = document.getElementById('log-password').value;
+        const cap = parseInt(document.getElementById('log-captcha-input').value);
 
-        if(!/^\d{10}$/.test(phone)) return alert("Please enter your 10-digit phone number."); if(!pwd) return alert("Please enter your password.");
+        if(!phone) return alert("Please enter your phone number."); if(!pwd) return alert("Please enter your password.");
         if(cap !== currentCaptchaAnswer) { alert("Incorrect verification answer!"); generateCaptcha('log'); return; }
 
         loader.style.display = 'flex';
-        get(ref(db, 'auth_users/' + phone)).then(snap => {
+        get(ref(db, 'auth_users/' + fullPhone)).then(snap => {
             loader.style.display = 'none';
             if(snap.exists()) {
                 const data = snap.val();
-                if(data.country_code !== code) { alert("select correct country code"); generateCaptcha('log'); return; }
+                if(data.country_code !== code) { alert("Incorrect country code selected for this phone number."); generateCaptcha('log'); return; }
                 if(data.password === btoa(pwd)) {
                     if(data.blocked) { alert("Account Denied: Your account has been blocked for violating our policy (Multiple accounts registered on a single IP address)."); generateCaptcha('log'); return; }
-                    USER_ID = "user_" + phone; startGame(); 
+                    USER_ID = "user_" + fullPhone; 
+                    startGame(); 
                 } else { alert("Incorrect Password!"); generateCaptcha('log'); }
             } else { alert("Account not found. Please register first."); generateCaptcha('log'); }
         }).catch(err => { loader.style.display = 'none'; alert("Database Error: " + err.message); });
@@ -1468,12 +1470,32 @@
         loader.style.display = 'flex';
         onValue(ref(db, 'users/' + USER_ID), (snapshot) => {
             if (snapshot.exists()) {
-                let data = snapshot.val(); userData = { ...userData, ...data };
+                let data = snapshot.val(); 
+                let previousAdoptions = userData.floors ? JSON.stringify(Object.values(userData.floors).map(f => f.adopted)) : null;
+                
+                if(userData.floors && data.floors) {
+                    Object.keys(data.floors).forEach(k => {
+                        if(userData.floors[k] && userData.floors[k].lastClaim > data.floors[k].lastClaim) {
+                            data.floors[k].lastClaim = userData.floors[k].lastClaim; 
+                        }
+                    });
+                }
+                
+                userData = { ...userData, ...data };
                 if(userData.soundEnabled !== undefined) document.getElementById('sound-toggle').checked = userData.soundEnabled;
-                if(!userData.floors) initDefaultFloors(); else renderFloors();
-            } else { initDefaultFloors(); }
+                
+                let newAdoptions = userData.floors ? JSON.stringify(Object.values(userData.floors).map(f => f.adopted)) : null;
+
+                if(!userData.floors) {
+                    initDefaultFloors(); 
+                } else if (previousAdoptions !== newAdoptions) {
+                    renderFloors();
+                }
+            } else { 
+                initDefaultFloors(); 
+            }
             document.getElementById('ui-eggs').innerText = Math.floor(userData.eggs);
-            document.getElementById('ui-usdt').innerText = userData.usdt.toFixed(2);
+            document.getElementById('ui-usdt').innerText = parseFloat(userData.usdt).toFixed(2);
             document.getElementById('ui-diamonds').innerText = Number(userData.diamonds || 0).toFixed(2).replace(/\.00$/, '');
             loader.style.display = 'none';
         });
@@ -1508,10 +1530,9 @@
         FLOORS.forEach(f => { if(userData.floors[f.id] && userData.floors[f.id].adopted) { initFloor3D(f.id); } });
     }
 
-    // Using beautiful CSS blue eggs seamlessly hovering directly over the beautiful 2D grass floor!
     function renderDiscreteEggs(fId, count) {
         let container = document.getElementById(`discrete-eggs-${fId}`); if(!container) return; let html = '';
-        for(let i=0; i<count; i++) html += `<div class="single-floor-egg" onclick="collectSingleEgg('${fId}')"></div>`;
+        for(let i=0; i<count; i++) html += `<div class="single-floor-egg" onclick="collectSingleEgg('${fId}', this)"></div>`;
         container.innerHTML = html;
     }
 
@@ -1547,21 +1568,25 @@
         }).catch(err => { loader.style.display = 'none'; alert("Error: " + err.message); });
     }
 
-    window.collectSingleEgg = function(fId) {
+    window.collectSingleEgg = function(fId, element) {
         if(!userData.floors[fId].adopted) return;
+        if (element.style.display === 'none') return;
+        element.style.display = 'none';
+        
         let fDef = FLOORS.find(x => x.id === fId); let now = Date.now();
         let maxAllowedElapsed = fDef.capacity * fDef.time_per_egg * 1000; let actualElapsed = now - userData.floors[fId].lastClaim;
 
         if(actualElapsed < fDef.time_per_egg * 1000) return; 
         if(actualElapsed > maxAllowedElapsed) userData.floors[fId].lastClaim = now - maxAllowedElapsed;
         
-        // Single One-By-One Collection Logic
         userData.floors[fId].lastClaim += (fDef.time_per_egg * 1000); 
         userData.eggs += 1;
-
+        
+        if(currentEggCounts[fId] > 0) currentEggCounts[fId]--;
         update(ref(db, 'users/' + USER_ID), { eggs: userData.eggs, [`floors/${fId}/lastClaim`]: userData.floors[fId].lastClaim });
-        playEggSound(); document.getElementById('ui-eggs').innerText = Math.floor(userData.eggs);
-        if(currentEggCounts[fId] > 0) { currentEggCounts[fId]--; renderDiscreteEggs(fId, currentEggCounts[fId]); }
+        
+        playEggSound(); 
+        document.getElementById('ui-eggs').innerText = Math.floor(userData.eggs);
     }
 
     window.playEggSound = function() {
@@ -1577,7 +1602,6 @@
     }
 
     window.toggleSound = function() { userData.soundEnabled = document.getElementById('sound-toggle').checked; if(USER_ID) update(ref(db, 'users/' + USER_ID), { soundEnabled: userData.soundEnabled }); }
-
     window.loadFriends = function() {
         document.getElementById('ui-invites').innerText = userData.invites || 0; document.getElementById('ui-invite-earnings').innerText = (userData.inviteEarnings || 0).toFixed(2) + " ₮";
     }
@@ -1598,12 +1622,21 @@
 
     window.initOasis = function() {
         if(!USER_ID) return;
-        const dateStr = new Date().toDateString(); const oasisRef = ref(db, 'oasis');
+        const dateStr = new Date().toDateString(); 
+        const oasisRef = ref(db, 'oasis');
         get(oasisRef).then(snap => {
             let data = snap.val();
             if(!data || data.date !== dateStr) { let newEggs = {}; for(let i=1; i<=50; i++) newEggs['egg_'+i] = true; set(oasisRef, { date: dateStr, eggs: newEggs }); }
         });
-        onValue(ref(db, 'oasis/eggs'), (snap) => { if(document.getElementById('screen-oasis').classList.contains('active')) renderOasisGrid(snap.val()); });
+        
+        if (!oasisListenerAttached) {
+            oasisListenerAttached = true;
+            onValue(ref(db, 'oasis/eggs'), (snap) => { 
+                if(document.getElementById('screen-oasis').classList.contains('active')) renderOasisGrid(snap.val()); 
+            });
+        } else {
+            get(ref(db, 'oasis/eggs')).then((snap) => { renderOasisGrid(snap.val()); });
+        }
     }
 
     function renderOasisGrid(eggsData) {
@@ -1622,7 +1655,10 @@
         if(!isPro) return alert("Oasis is for Pro Users only! Adopt Floor 2 or above to claim global eggs.");
         get(ref(db, `oasis/eggs/${eggId}`)).then(snap => {
             if(snap.val() === true) {
-                update(ref(db, 'oasis/eggs'), { [eggId]: false }); userData.eggs += 1; update(ref(db, `users/${USER_ID}`), { eggs: userData.eggs }); playEggSound();
+                update(ref(db, 'oasis/eggs'), { [eggId]: false }); 
+                userData.eggs += 1; 
+                update(ref(db, `users/${USER_ID}`), { eggs: userData.eggs }); 
+                playEggSound();
             } else { alert("Too slow! Someone else already claimed this beautiful egg."); }
         });
     }
@@ -1643,13 +1679,53 @@
     window.updateDepositAddress = function() { document.getElementById('dep-address-txt').innerText = DEPOSIT_ADDRESSES[document.getElementById('dep-network').value]; }
     window.copyAddress = function() { navigator.clipboard.writeText(document.getElementById('dep-address-txt').innerText); alert("Address copied!"); }
 
-    window.submitDeposit = function() {
-        let amt = parseFloat(document.getElementById('dep-amount').value); let proof = document.getElementById('dep-proof').files[0];
-        if(!amt || amt < 1) return alert("Minimum deposit $1."); if(!proof) return alert("Upload proof.");
+    window.submitDeposit = async function() {
+        const amt = parseFloat(document.getElementById('dep-amount').value);
+        const proof = document.getElementById('dep-proof').files[0];
+        const apiKey = '31c324eeef3df98e593e1897b02cc37b';
+
+        if (!amt || amt < 1) return alert("Minimum deposit is $1.00.");
+        if (!proof) return alert("Please upload a payment proof image.");
+
         loader.style.display = 'flex';
-        push(ref(db, 'deposits/' + USER_ID), { amount_usdt: amt.toFixed(2), network: document.getElementById('dep-network').value, proof_file: proof.name, status: "Review", date: new Date().toLocaleString() }).then(() => {
-            loader.style.display = 'none'; alert("Deposit submitted!"); navTo('screen-home');
-        });
+        loader.innerText = 'Uploading Proof...';
+
+        const formData = new FormData();
+        formData.append('key', apiKey);
+        formData.append('image', proof);
+
+        try {
+            const response = await fetch('https://api.imgbb.com/1/upload', {
+                method: 'POST',
+                body: formData,
+            });
+            const result = await response.json();
+
+            if (result.success) {
+                const imageUrl = result.data.url;
+                loader.innerText = 'Submitting...';
+                
+                await push(ref(db, 'deposits/' + USER_ID), {
+                    amount_usdt: amt.toFixed(2),
+                    network: document.getElementById('dep-network').value,
+                    proof_url: imageUrl,
+                    status: "Review",
+                    date: new Date().toLocaleString()
+                });
+                
+                loader.style.display = 'none';
+                loader.innerText = 'Loading...';
+                alert("Deposit submitted successfully for review!");
+                navTo('screen-home');
+
+            } else {
+                throw new Error(result.error.message);
+            }
+        } catch (error) {
+            loader.style.display = 'none';
+            loader.innerText = 'Loading...';
+            alert("Image upload failed: " + error.message);
+        }
     }
 
     window.loadHistory = function(type) {
@@ -1665,6 +1741,124 @@
             } else { ul.innerHTML = "<p style='text-align:center; color:#888; padding:20px;'>No history found.</p>"; }
         });
     }
+
+    // --- Country Selector Logic ---
+    const countryData = [
+        { name: "Afghanistan", code: "+93", flag: "🇦🇫" }, { name: "Albania", code: "+355", flag: "🇦🇱" }, { name: "Algeria", code: "+213", flag: "🇩🇿" },
+        { name: "Andorra", code: "+376", flag: "🇦🇩" }, { name: "Angola", code: "+244", flag: "🇦🇴" }, { name: "Argentina", code: "+54", flag: "🇦🇷" },
+        { name: "Armenia", code: "+374", flag: "🇦🇲" }, { name: "Australia", code: "+61", flag: "🇦🇺" }, { name: "Austria", code: "+43", flag: "🇦🇹" },
+        { name: "Azerbaijan", code: "+994", flag: "🇦🇿" }, { name: "Bahamas", code: "+1-242", flag: "🇧🇸" }, { name: "Bahrain", code: "+973", flag: "🇧🇭" },
+        { name: "Bangladesh", code: "+880", flag: "🇧🇩" }, { name: "Belarus", code: "+375", flag: "🇧🇾" }, { name: "Belgium", code: "+32", flag: "🇧🇪" },
+        { name: "Belize", code: "+501", flag: "🇧🇿" }, { name: "Benin", code: "+229", flag: "🇧🇯" }, { name: "Bhutan", code: "+975", flag: "🇧🇹" },
+        { name: "Bolivia", code: "+591", flag: "🇧🇴" }, { name: "Bosnia & Herzegovina", code: "+387", flag: "🇧🇦" }, { name: "Botswana", code: "+267", flag: "🇧🇼" },
+        { name: "Brazil", code: "+55", flag: "🇧🇷" }, { name: "Brunei", code: "+673", flag: "🇧🇳" }, { name: "Bulgaria", code: "+359", flag: "🇧🇬" },
+        { name: "Burkina Faso", code: "+226", flag: "🇧🇫" }, { name: "Cambodia", code: "+855", flag: "🇰🇭" }, { name: "Cameroon", code: "+237", flag: "🇨🇲" },
+        { name: "Canada", code: "+1", flag: "🇨🇦" }, { name: "Central African Republic", code: "+236", flag: "🇨🇫" }, { name: "Chile", code: "+56", flag: "🇨🇱" },
+        { name: "China", code: "+86", flag: "🇨🇳" }, { name: "Colombia", code: "+57", flag: "🇨🇴" }, { name: "Congo - Brazzaville", code: "+242", flag: "🇨🇬" },
+        { name: "Congo - Kinshasa", code: "+243", flag: "🇨🇩" }, { name: "Costa Rica", code: "+506", flag: "🇨🇷" }, { name: "Croatia", code: "+385", flag: "🇭🇷" },
+        { name: "Cuba", code: "+53", flag: "🇨🇺" }, { name: "Cyprus", code: "+357", flag: "🇨🇾" }, { name: "Czechia", code: "+420", flag: "🇨🇿" },
+        { name: "Denmark", code: "+45", flag: "🇩🇰" }, { name: "Djibouti", code: "+253", flag: "🇩🇯" }, { name: "Dominican Republic", code: "+1-809", flag: "🇩🇴" },
+        { name: "Ecuador", code: "+593", flag: "🇪🇨" }, { name: "Egypt", code: "+20", flag: "🇪🇬" }, { name: "El Salvador", code: "+503", flag: "🇸🇻" },
+        { name: "Estonia", code: "+372", flag: "🇪🇪" }, { name: "Ethiopia", code: "+251", flag: "🇪🇹" }, { name: "Fiji", code: "+679", flag: "🇫🇯" },
+        { name: "Finland", code: "+358", flag: "🇫🇮" }, { name: "France", code: "+33", flag: "🇫🇷" }, { name: "Gabon", code: "+241", flag: "🇬🇦" },
+        { name: "Georgia", code: "+995", flag: "🇬🇪" }, { name: "Germany", code: "+49", flag: "🇩🇪" }, { name: "Ghana", code: "+233", flag: "🇬🇭" },
+        { name: "Greece", code: "+30", flag: "🇬🇷" }, { name: "Guatemala", code: "+502", flag: "🇬🇹" }, { name: "Honduras", code: "+504", flag: "🇭🇳" },
+        { name: "Hong Kong", code: "+852", flag: "🇭🇰" }, { name: "Hungary", code: "+36", flag: "🇭🇺" }, { name: "Iceland", code: "+354", flag: "🇮🇸" },
+        { name: "India", code: "+91", flag: "🇮🇳" }, { name: "Indonesia", code: "+62", flag: "🇮🇩" }, { name: "Iran", code: "+98", flag: "🇮🇷" },
+        { name: "Iraq", code: "+964", flag: "🇮🇶" }, { name: "Ireland", code: "+353", flag: "🇮🇪" }, { name: "Israel", code: "+972", flag: "🇮🇱" },
+        { name: "Italy", code: "+39", flag: "🇮🇹" }, { name: "Jamaica", code: "+1-876", flag: "🇯🇲" }, { name: "Japan", code: "+81", flag: "🇯🇵" },
+        { name: "Jordan", code: "+962", flag: "🇯🇴" }, { name: "Kazakhstan", code: "+7", flag: "🇰🇿" }, { name: "Kenya", code: "+254", flag: "🇰🇪" },
+        { name: "Kuwait", code: "+965", flag: "🇰🇼" }, { name: "Laos", code: "+856", flag: "🇱🇦" }, { name: "Latvia", code: "+371", flag: "🇱🇻" },
+        { name: "Lebanon", code: "+961", flag: "🇱🇧" }, { name: "Liberia", code: "+231", flag: "🇱🇷" }, { name: "Libya", code: "+218", flag: "🇱🇾" },
+        { name: "Lithuania", code: "+370", flag: "🇱🇹" }, { name: "Luxembourg", code: "+352", flag: "🇱🇺" }, { name: "Madagascar", code: "+261", flag: "🇲🇬" },
+        { name: "Malaysia", code: "+60", flag: "🇲🇾" }, { name: "Maldives", code: "+960", flag: "🇲🇻" }, { name: "Mali", code: "+223", flag: "🇲🇱" },
+        { name: "Malta", code: "+356", flag: "🇲🇹" }, { name: "Mexico", code: "+52", flag: "🇲🇽" }, { name: "Monaco", code: "+377", flag: "🇲🇨" },
+        { name: "Mongolia", code: "+976", flag: "🇲🇳" }, { name: "Morocco", code: "+212", flag: "🇲🇦" }, { name: "Myanmar (Burma)", code: "+95", flag: "🇲🇲" },
+        { name: "Nepal", code: "+977", flag: "🇳🇵" }, { name: "Netherlands", code: "+31", flag: "🇳🇱" }, { name: "New Zealand", code: "+64", flag: "🇳🇿" },
+        { name: "Nigeria", code: "+234", flag: "🇳🇬" }, { name: "North Korea", code: "+850", flag: "🇰🇵" }, { name: "North Macedonia", code: "+389", flag: "🇲🇰" },
+        { name: "Norway", code: "+47", flag: "🇳🇴" }, { name: "Oman", code: "+968", flag: "🇴🇲" }, { name: "Pakistan", code: "+92", flag: "🇵🇰" },
+        { name: "Palestine", code: "+970", flag: "🇵🇸" }, { name: "Panama", code: "+507", flag: "🇵🇦" }, { name: "Paraguay", code: "+595", flag: "🇵🇾" },
+        { name: "Peru", code: "+51", flag: "🇵🇪" }, { name: "Philippines", code: "+63", flag: "🇵🇭" }, { name: "Poland", code: "+48", flag: "🇵🇱" },
+        { name: "Portugal", code: "+351", flag: "🇵🇹" }, { name: "Qatar", code: "+974", flag: "🇶🇦" }, { name: "Romania", code: "+40", flag: "🇷🇴" },
+        { name: "Russia", code: "+7", flag: "🇷🇺" }, { name: "Saudi Arabia", code: "+966", flag: "🇸🇦" }, { name: "Senegal", code: "+221", flag: "🇸🇳" },
+        { name: "Serbia", code: "+381", flag: "🇷🇸" }, { name: "Singapore", code: "+65", flag: "🇸🇬" }, { name: "Slovakia", code: "+421", flag: "🇸🇰" },
+        { name: "Slovenia", code: "+386", flag: "🇸🇮" }, { name: "Somalia", code: "+252", flag: "🇸🇴" }, { name: "South Africa", code: "+27", flag: "🇿🇦" },
+        { name: "South Korea", code: "+82", flag: "🇰🇷" }, { name: "Spain", code: "+34", flag: "🇪🇸" }, { name: "Sri Lanka", code: "+94", flag: "🇱🇰" },
+        { name: "Sudan", code: "+249", flag: "🇸🇩" }, { name: "Sweden", code: "+46", flag: "🇸🇪" }, { name: "Switzerland", code: "+41", flag: "🇨🇭" },
+        { name: "Syria", code: "+963", flag: "🇸🇾" }, { name: "Taiwan", code: "+886", flag: "🇹🇼" }, { name: "Tanzania", code: "+255", flag: "🇹🇿" },
+        { name: "Thailand", code: "+66", flag: "🇹🇭" }, { name: "Togo", code: "+228", flag: "🇹🇬" }, { name: "Tunisia", code: "+216", flag: "🇹🇳" },
+        { name: "Turkey", code: "+90", flag: "🇹🇷" }, { name: "Uganda", code: "+256", flag: "🇺🇬" }, { name: "Ukraine", code: "+380", flag: "🇺🇦" },
+        { name: "United Arab Emirates", code: "+971", flag: "🇦🇪" }, { name: "United Kingdom", code: "+44", flag: "🇬🇧" }, { name: "United States", code: "+1", flag: "🇺🇸" },
+        { name: "Uruguay", code: "+598", flag: "🇺🇾" }, { name: "Uzbekistan", code: "+998", flag: "🇺🇿" }, { name: "Venezuela", code: "+58", flag: "🇻🇪" },
+        { name: "Vietnam", code: "+84", flag: "🇻🇳" }, { name: "Yemen", code: "+967", flag: "🇾🇪" }, { name: "Zambia", code: "+260", flag: "🇿🇲" },
+        { name: "Zimbabwe", code: "+263", flag: "🇿🇼" }
+    ];
+
+    function initCustomSelects() {
+        document.querySelectorAll('.country-select-custom').forEach(wrapper => {
+            const defaultCountry = countryData.find(c => c.code === '+91') || countryData[0];
+            wrapper.innerHTML = `
+                <div class="custom-select-wrapper">
+                    <div class="custom-select-trigger"><span>${defaultCountry.flag} ${defaultCountry.code}</span></div>
+                    <div class="custom-select-options">
+                        <input type="text" class="custom-select-search" placeholder="Search Country...">
+                        <ul class="options-list"></ul>
+                    </div>
+                </div>
+            `;
+            wrapper.dataset.value = defaultCountry.code;
+
+            const trigger = wrapper.querySelector('.custom-select-trigger');
+            const optionsContainer = wrapper.querySelector('.custom-select-options');
+            const searchInput = wrapper.querySelector('.custom-select-search');
+            const optionsList = wrapper.querySelector('.options-list');
+
+            populateOptions(optionsList, '');
+
+            trigger.addEventListener('click', () => {
+                optionsContainer.classList.toggle('open');
+                if (optionsContainer.classList.contains('open')) {
+                    searchInput.focus();
+                }
+            });
+
+            searchInput.addEventListener('keyup', () => {
+                populateOptions(optionsList, searchInput.value);
+            });
+            
+            window.addEventListener('click', (e) => {
+                if (!wrapper.contains(e.target)) {
+                    optionsContainer.classList.remove('open');
+                }
+            });
+        });
+    }
+
+    function populateOptions(listElement, filter) {
+        const wrapper = listElement.closest('.country-select-custom');
+        const triggerSpan = wrapper.querySelector('.custom-select-trigger span');
+
+        listElement.innerHTML = '';
+        const filteredData = countryData.filter(country => 
+            country.name.toLowerCase().includes(filter.toLowerCase()) || 
+            country.code.includes(filter)
+        );
+
+        filteredData.forEach(country => {
+            const li = document.createElement('li');
+            li.textContent = `${country.flag} ${country.name} (${country.code})`;
+            li.dataset.value = country.code;
+            li.dataset.display = `${country.flag} ${country.code}`;
+            
+            li.addEventListener('click', () => {
+                triggerSpan.textContent = li.dataset.display;
+                wrapper.dataset.value = li.dataset.value;
+                wrapper.querySelector('.custom-select-options').classList.remove('open');
+            });
+            listElement.appendChild(li);
+        });
+    }
+
 </script>
 </body>
 </html>
