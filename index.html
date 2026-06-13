@@ -359,7 +359,7 @@
         Toast.fire({icon: 'success', title: isLink ? 'Link Copied!' : 'Title Copied!'});
     };
 
-    // Bottom Nav Generator (Updated with Invite Tab)
+    // Bottom Nav Generator
     const renderBottomNav = (activeTab) => {
         const screens = ['screen-home', 'screen-invite', 'screen-withdraw', 'screen-profile'];
         screens.forEach(s => {
@@ -702,10 +702,47 @@
         });
     };
 
+    // ----------------------------------------------------
+    // INSTRUCTION POPUP FLOW BEFORE STARTING TASK
+    // ----------------------------------------------------
     window.startTask = async (tid) => {
+        const step1 = await Swal.fire({
+            title: 'Instruction (1/3)',
+            text: 'First, carefully copy the title and find the correct video.',
+            imageUrl: 'https://iili.io/CCPHeDJ.jpg',
+            imageWidth: 250,
+            confirmButtonText: 'Understand',
+            confirmButtonColor: '#1b35a3',
+            showCancelButton: true
+        });
+        if (!step1.isConfirmed) return;
+
+        const step2 = await Swal.fire({
+            title: 'Instruction (2/3)',
+            text: 'Watch the entire video completely without skipping.',
+            imageUrl: 'https://iili.io/CCPHNAg.jpg',
+            imageWidth: 250,
+            confirmButtonText: 'Understand',
+            confirmButtonColor: '#1b35a3',
+            showCancelButton: true
+        });
+        if (!step2.isConfirmed) return;
+
+        const step3 = await Swal.fire({
+            title: 'Instruction (3/3)',
+            text: 'Like the video and upload a clear screenshot as proof.',
+            imageUrl: 'https://iili.io/CCPFeGj.jpg',
+            imageWidth: 250,
+            confirmButtonText: 'Done',
+            confirmButtonColor: '#14a47a',
+            showCancelButton: true
+        });
+        if (!step3.isConfirmed) return;
+
         loader.style.display = 'flex';
         await set(ref(db, `userTasks/${currentUser.uid}/started/${tid}`), { startedAt: Date.now() });
-        loader.style.display = 'none'; Toast.fire({icon: 'success', title: 'Task Started! Check Pending Tab.'});
+        loader.style.display = 'none'; 
+        Toast.fire({icon: 'success', title: 'Task Started! Check Pending Tab.'});
     };
 
     // Advanced Image Preview Logic with External Image Hosting
